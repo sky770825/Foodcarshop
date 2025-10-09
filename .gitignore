@@ -1,0 +1,22 @@
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+
+# 临时文件
+*.tmp
+*.log
+
+# Node modules (如果之后有用到)
+node_modules/
+
+# 文档文件（不需要部署）
+*.md
+!README.md
+
+# Google Apps Script（后端代码不需要部署）
+Google_Apps_Script_後端.js
+
