@@ -13,10 +13,16 @@ Thumbs.db
 # Node modules (如果之后有用到)
 node_modules/
 
-# 文档文件（不需要部署）
-*.md
-!README.md
+# 文档文件（不需要部署到网站）
+庫存管理設定教學.md
+快速設定檢查清單.md
+系統架構說明.md
 
 # Google Apps Script（后端代码不需要部署）
 Google_Apps_Script_後端.js
+
+# 旧版本备份文件
+my_preview*.html
+cheenken1.html
+index.html
 
