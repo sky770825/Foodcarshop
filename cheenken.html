@@ -726,8 +726,7 @@
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label">取餐方式<span class="required">*</span></label>
             <select required name="method">
-              <option value="現場自取">🚶 現場自取</option>
-              <option value="託人代取">👥 託人代取</option>
+              <option value="">載入中...</option>
             </select>
           </div>
 
@@ -736,28 +735,9 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px,2vw,10px);">
               <select required id="etaHour" style="border-color:var(--accent); font-weight:600;">
                 <option value="">時</option>
-                <option value="14">14 點</option>
-                <option value="15">15 點</option>
-                <option value="16">16 點</option>
-                <option value="17">17 點</option>
-                <option value="18">18 點</option>
-                <option value="19">19 點</option>
-                <option value="20">20 點</option>
               </select>
               <select required id="etaMinute" style="border-color:var(--accent); font-weight:600;">
                 <option value="">分</option>
-                <option value="00">00 分</option>
-                <option value="05">05 分</option>
-                <option value="10">10 分</option>
-                <option value="15">15 分</option>
-                <option value="20">20 分</option>
-                <option value="25">25 分</option>
-                <option value="30">30 分</option>
-                <option value="35">35 分</option>
-                <option value="40">40 分</option>
-                <option value="45">45 分</option>
-                <option value="50">50 分</option>
-                <option value="55">55 分</option>
               </select>
             </div>
             <input type="hidden" name="eta" id="etaCombined" />
@@ -948,6 +928,78 @@
         console.warn('無法載入庫存，使用預設設定:', err);
         // 如果無法連線，仍允許訂購（降級處理）
       }
+    }
+
+    // ====== 載入系統設定（時間、取餐方式等） ======
+    async function loadConfig() {
+      try {
+        const res = await fetch(`${GAS_ENDPOINT}?action=getConfig`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          console.log('系統設定已載入:', data);
+          
+          // 動態生成取餐時間選項
+          if (data.timeOptions) {
+            updateTimeOptions(data.timeOptions.hours, data.timeOptions.minutes);
+          }
+          
+          // 動態生成取餐方式選項
+          if (data.methodOptions) {
+            updateMethodOptions(data.methodOptions);
+          }
+        }
+      } catch (err) {
+        console.warn('無法載入系統設定，使用預設選項:', err);
+      }
+    }
+
+    // 更新取餐時間選項
+    function updateTimeOptions(hours, minutes) {
+      const etaHour = document.getElementById('etaHour');
+      const etaMinute = document.getElementById('etaMinute');
+      
+      // 清空現有選項（保留第一個"時"/"分"）
+      etaHour.innerHTML = '<option value="">時</option>';
+      etaMinute.innerHTML = '<option value="">分</option>';
+      
+      // 添加小時選項
+      hours.forEach(h => {
+        const option = document.createElement('option');
+        option.value = h;
+        option.textContent = `${h} 點`;
+        etaHour.appendChild(option);
+      });
+      
+      // 添加分鐘選項
+      minutes.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m;
+        option.textContent = `${m} 分`;
+        etaMinute.appendChild(option);
+      });
+      
+      console.log('✅ 取餐時間選項已更新');
+    }
+
+    // 更新取餐方式選項
+    function updateMethodOptions(methods) {
+      const methodSelect = document.querySelector('select[name="method"]');
+      
+      // 清空現有選項
+      methodSelect.innerHTML = '';
+      
+      // 添加新選項
+      methods.forEach(method => {
+        const option = document.createElement('option');
+        option.value = method;
+        // 添加表情符號
+        const emoji = method.includes('自取') ? '🚶' : method.includes('代取') ? '👥' : method.includes('外送') ? '🛵' : '📦';
+        option.textContent = `${emoji} ${method}`;
+        methodSelect.appendChild(option);
+      });
+      
+      console.log('✅ 取餐方式選項已更新');
     }
 
     // ====== 更新商品的缺貨狀態和庫存顯示 ======
@@ -1259,6 +1311,9 @@
 
     // ====== 頁面載入時初始化 ======
     window.addEventListener('DOMContentLoaded', () => {
+      // 載入系統設定（取餐時間、取餐方式等）
+      loadConfig();
+      
       // 載入庫存狀態
       loadInventory();
       
