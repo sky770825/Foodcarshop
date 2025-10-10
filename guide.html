@@ -140,17 +140,28 @@
     }
     
     .step-image{
-      width: 100%;
+      width: 60%;
+      max-width: 400px;
       border-radius: clamp(8px, 2vw, 12px);
       border: 2px solid var(--border);
-      margin-top: clamp(12px, 3vw, 16px);
+      margin: clamp(12px, 3vw, 16px) auto;
+      display: block;
       cursor: pointer;
       transition: all .3s ease;
     }
     .step-image:hover{
       border-color: var(--primary);
       box-shadow: 0 4px 16px rgba(217,119,6,.2);
-      transform: scale(1.02);
+      transform: scale(1.05);
+    }
+    .image-hint{
+      text-align: center;
+      font-size: clamp(11px, 2.5vw, 12px);
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    @media(max-width: 600px){
+      .step-image{ width: 80%; }
     }
     
     /* 提示框 */
@@ -382,7 +393,8 @@
             <li>預計取餐時間（選擇時和分）</li>
           </ul>
         </div>
-        <img src="https://i.postimg.cc/tCHNNTLX/image.jpg" alt="填寫基本資料" class="step-image" onclick="openModal(this.src)">
+        <img src="https://i.postimg.cc/dtTgLLGB/image.jpg" alt="填寫基本資料" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊圖片可放大查看</div>
       </div>
 
       <!-- 步驟 2 -->
@@ -395,13 +407,14 @@
             <li><strong>主餐</strong>：$150/份，可選擇去骨或保留骨頭</li>
             <li><strong>單點配菜</strong>：$30/份，多種分類可選</li>
             <li>點擊 <strong>+/-</strong> 按鈕調整數量</li>
-            <li>查看右側的<span style="color:var(--success)">庫存(當前/總數)</span>狀態</li>
+            <li>查看商品旁的<span style="color:var(--success)">庫存(當前/總數)</span>狀態</li>
           </ul>
           <div class="tip-box">
             💡 <strong>小提示：</strong>庫存不足的商品會顯示「缺貨中」標籤且無法選購
           </div>
         </div>
-        <img src="https://i.postimg.cc/TYXJJwZp/image.jpg" alt="選擇商品" class="step-image" onclick="openModal(this.src)">
+        <img src="https://i.postimg.cc/L6M33XrZ/image.jpg" alt="選擇主餐與配菜" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊圖片可放大查看</div>
       </div>
 
       <!-- 步驟 3 -->
@@ -418,7 +431,8 @@
             <li><strong>備註</strong>：特殊需求（例如：不吃香菜、多黃瓜）</li>
           </ul>
         </div>
-        <img src="https://i.postimg.cc/KvyDDzd1/image.jpg" alt="客製化口味" class="step-image" onclick="openModal(this.src)">
+        <img src="https://i.postimg.cc/Y0BDFx6B/image.jpg" alt="客製化口味" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊圖片可放大查看</div>
       </div>
 
       <!-- 步驟 4 -->
@@ -437,7 +451,51 @@
             ✅ <strong>訂單成功後：</strong>會顯示訂單編號（例如：1010-001）和完整訂單摘要，可直接複製分享
           </div>
         </div>
-        <img src="https://i.postimg.cc/L6M33XrZ/image.jpg" alt="送出訂單" class="step-image" onclick="openModal(this.src)">
+        <img src="https://i.postimg.cc/KvyDDzd1/image.jpg" alt="確認送出訂單" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+      </div>
+    </div>
+    
+    <!-- 進階功能 -->
+    <div class="card">
+      <h2 class="section-title">🔧 進階功能</h2>
+      
+      <!-- 後台訂單管理 -->
+      <div class="step-card">
+        <div class="step-number">📊</div>
+        <h3 class="step-title">後台訂單管理</h3>
+        <div class="step-content">
+          <p><strong>店家可透過 Google Sheets 查看所有訂單：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>訂單時間、編號、顧客資料</li>
+            <li>完整的訂購項目與金額</li>
+            <li>格式化的訂單摘要（方便複製到 LINE）</li>
+            <li>可匯出 Excel 進行分析</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/TYXJJwZp/image.jpg" alt="後台訂單管理" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+      </div>
+      
+      <!-- 庫存即時連動 -->
+      <div class="step-card">
+        <div class="step-number">🔄</div>
+        <h3 class="step-title">庫存即時連動</h3>
+        <div class="step-content">
+          <p><strong>智能庫存管理系統：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>店家在 Google Sheets 調整庫存 → 前端自動更新</li>
+            <li>顧客下單 → 後台自動扣減庫存</li>
+            <li>防超賣機制：多人同時下單也不會超賣</li>
+            <li>每 30 秒自動刷新，確保資訊即時</li>
+            <li>庫存為 0 自動顯示「缺貨中」並禁用選購</li>
+          </ul>
+          <div class="tip-box">
+            🔒 <strong>安全保證：</strong>採用 LockService 鎖定機制，絕對不會發生超賣問題
+          </div>
+        </div>
+        <img src="https://i.postimg.cc/tCHNNTLX/image.jpg" alt="庫存即時連動" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊圖片可放大查看</div>
       </div>
     </div>
 
