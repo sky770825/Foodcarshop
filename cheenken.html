@@ -1012,12 +1012,12 @@
         <div class="product-image-wrap" data-image="${item.img.replace('w=400&h=400', 'w=800&h=800')}" data-name="${item.name}">
           <img src="${item.img}" alt="${item.name}" class="product-image" loading="lazy" />
         </div>
-        <div style="display:flex; flex-direction:column; gap:clamp(3px,0.8vw,4px); margin-bottom:clamp(5px,1.2vw,6px);">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
+          <div style="display:flex; align-items:center; gap:clamp(4px,1vw,6px); flex:1;">
             <div class="product-name" style="margin-bottom:0;">${item.name}</div>
-            <div class="product-price" style="margin-bottom:0;">$${PRICE.main}</div>
+            <div class="product-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
           </div>
-          <div class="product-stock" style="font-size:clamp(11px,2.5vw,12px); color:var(--muted);">庫存載入中...</div>
+          <div class="product-price" style="margin-bottom:0;">$${PRICE.main}</div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(4px,1vw,6px);">
           <div class="qty-control">
@@ -1070,9 +1070,9 @@
         const sideItem = document.createElement('div');
         sideItem.className = 'side-item';
         sideItem.innerHTML = `
-          <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+          <div style="flex:1; display:flex; align-items:center; gap:clamp(4px,1vw,6px);">
             <div class="side-item-name">${item.name}</div>
-            <div class="side-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
+            <div class="side-stock" style="font-size:clamp(9px,2vw,10px); color:var(--muted); white-space:nowrap;">載入中...</div>
           </div>
           <div class="qty-control">
             <button type="button" class="qty-btn" data-action="decrease" data-target="${item.name}">−</button>
