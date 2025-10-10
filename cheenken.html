@@ -645,6 +645,33 @@
       .summary-grid{ grid-template-columns: 1.2fr 0.8fr; } /* 電腦版：預覽較寬，總計較窄 */
       .taste-grid{ grid-template-columns: repeat(4, 1fr); } /* 電腦版：一行 4 欄 */
     }
+    
+    /* 底部版权信息 */
+    .footer{
+      text-align: center;
+      padding: clamp(20px, 5vw, 30px) clamp(12px, 3vw, 16px);
+      color: var(--muted);
+      font-size: clamp(10px, 2.2vw, 11px);
+      line-height: 1.8;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+      margin-top: clamp(20px, 5vw, 30px);
+    }
+    .footer a{
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all .2s ease;
+    }
+    .footer a:hover{
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+    .footer-warning{
+      margin-top: 8px;
+      font-size: clamp(9px, 2vw, 10px);
+      color: #9ca3af;
+    }
   </style>
 </head>
 <body>
@@ -1446,5 +1473,15 @@ ${tasteText}
       }
     });
   </script>
+
+  <!-- 底部版權信息 -->
+  <footer class="footer">
+    <div>
+      © 2025 製作來源：<a href="https://lin.ee/YyXagFg" target="_blank" rel="noopener noreferrer">快閃餐車小幫手</a>
+    </div>
+    <div class="footer-warning">
+      ⚠️ 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
+    </div>
+  </footer>
 </body>
 </html>
