@@ -96,15 +96,54 @@
       background: #fff;
       border: 2px solid var(--border);
       border-radius: var(--radius);
-      padding: clamp(16px, 4vw, 20px);
-      margin-bottom: clamp(16px, 4vw, 20px);
+      padding: clamp(14px, 3.5vw, 18px);
       transition: all .3s ease;
       position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     .step-card:hover{
       border-color: var(--primary);
       box-shadow: 0 8px 24px rgba(217,119,6,.15);
       transform: translateY(-2px);
+    }
+    
+    /* 步骤网格布局 */
+    .steps-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(14px, 3.5vw, 18px);
+    }
+    @media(min-width: 768px){
+      .steps-grid{ 
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media(min-width: 1024px){
+      .steps-grid.main-steps{ 
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .steps-grid.advanced-steps{ 
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    /* FAQ 网格 */
+    .faq-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(10px, 2.5vw, 12px);
+    }
+    @media(min-width: 768px){
+      .faq-grid{ 
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media(min-width: 1024px){
+      .faq-grid{ 
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
     
     .step-number{
@@ -125,43 +164,50 @@
     }
     
     .step-title{
-      font-size: clamp(17px, 4vw, 20px);
+      font-size: clamp(15px, 3.5vw, 17px);
       font-weight: 700;
       color: var(--primary);
-      margin: 0 0 clamp(10px, 2.5vw, 12px);
+      margin: 0 0 clamp(8px, 2vw, 10px);
       padding-right: clamp(50px, 12vw, 60px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .step-content{
-      font-size: clamp(14px, 3.2vw, 15px);
-      line-height: 1.8;
+      font-size: clamp(12px, 2.8vw, 13px);
+      line-height: 1.6;
       color: var(--text);
-      margin-bottom: clamp(12px, 3vw, 16px);
+      flex: 1;
+    }
+    .step-content ul{
+      margin: clamp(6px, 1.5vw, 8px) 0;
+      padding-left: 18px;
+    }
+    .step-content li{
+      margin-bottom: clamp(3px, 0.8vw, 4px);
+      line-height: 1.5;
     }
     
     .step-image{
-      width: 60%;
-      max-width: 400px;
-      border-radius: clamp(8px, 2vw, 12px);
-      border: 2px solid var(--border);
-      margin: clamp(12px, 3vw, 16px) auto;
+      width: 100%;
+      border-radius: clamp(6px, 1.5vw, 8px);
+      border: 1.5px solid var(--border);
+      margin-top: auto;
       display: block;
       cursor: pointer;
       transition: all .3s ease;
     }
     .step-image:hover{
       border-color: var(--primary);
-      box-shadow: 0 4px 16px rgba(217,119,6,.2);
-      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(217,119,6,.2);
+      transform: scale(1.02);
     }
     .image-hint{
       text-align: center;
-      font-size: clamp(11px, 2.5vw, 12px);
+      font-size: clamp(9px, 2vw, 10px);
       color: var(--muted);
-      margin-top: 8px;
-    }
-    @media(max-width: 600px){
-      .step-image{ width: 80%; }
+      margin-top: 6px;
     }
     
     /* 提示框 */
@@ -235,20 +281,30 @@
     .faq-item{
       background: #fff;
       border: 1.5px solid var(--border);
-      border-radius: clamp(8px, 2vw, 10px);
-      padding: clamp(14px, 3.5vw, 18px);
-      margin-bottom: clamp(10px, 2.5vw, 12px);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      padding: clamp(12px, 3vw, 14px);
+      height: 100%;
+      transition: all .3s ease;
+    }
+    .faq-item:hover{
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(217,119,6,.1);
     }
     .faq-question{
       font-weight: 700;
       color: var(--primary);
-      margin-bottom: clamp(6px, 1.5vw, 8px);
-      font-size: clamp(14px, 3.2vw, 16px);
+      margin-bottom: clamp(6px, 1.5vw, 7px);
+      font-size: clamp(13px, 3vw, 14px);
+      line-height: 1.4;
     }
     .faq-answer{
       color: var(--text);
-      font-size: clamp(13px, 3vw, 14px);
-      line-height: 1.7;
+      font-size: clamp(11px, 2.5vw, 12px);
+      line-height: 1.6;
+    }
+    .faq-answer strong{
+      color: var(--primary);
+      white-space: nowrap;
     }
     
     /* 底部 */
@@ -331,14 +387,14 @@
     <!-- 快速開始 -->
     <div class="card">
       <h2 class="section-title">🚀 快速開始</h2>
-      <p style="font-size:clamp(14px,3.2vw,16px); line-height:1.8; margin-bottom:clamp(16px,4vw,20px);">
-        歡迎使用快閃餐車線上訂購系統！只需 <strong style="color:var(--primary)">4 個步驟</strong>，輕鬆完成預訂。本系統適用於各類型餐車、小吃攤、外帶店家。
+      <p style="font-size:clamp(13px,3vw,14px); line-height:1.6; margin-bottom:clamp(14px,3.5vw,16px); color:var(--muted);">
+        快閃餐車線上訂購系統範例｜4步驟完成預訂｜適用餐車、小吃攤、外帶店
       </p>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2.5vw,12px);">
-        <a href="https://511669a1.foodcarshop.pages.dev/%E9%B9%BD%E6%B0%B4%E9%9B%9E%E5%B0%88%E6%A1%88/%E5%85%AC%E9%96%8B%E8%A9%A6%E7%AF%84%E7%89%88%E6%9C%AC/opentext" target="_blank" class="btn-primary" style="width:100%; display:block;">
+        <a href="https://511669a1.foodcarshop.pages.dev/%E9%B9%BD%E6%B0%B4%E9%9B%9E%E5%B0%88%E6%A1%88/%E5%85%AC%E9%96%8B%E8%A9%A6%E7%AF%84%E7%89%88%E6%9C%AC/opentext" target="_blank" class="btn-primary" style="width:100%;">
           🛒 開始訂購
         </a>
-        <a href="https://docs.google.com/spreadsheets/d/1zY-y7flT2zL3SrVFL3kr4x8whwsQz_Ai5QwGXqlNVXM/edit?gid=1899503625#gid=1899503625" target="_blank" class="btn-primary" style="width:100%; display:block; background:linear-gradient(135deg,#059669,#10b981);">
+        <a href="https://docs.google.com/spreadsheets/d/1zY-y7flT2zL3SrVFL3kr4x8whwsQz_Ai5QwGXqlNVXM/edit?gid=1899503625#gid=1899503625" target="_blank" class="btn-primary" style="width:100%; background:linear-gradient(135deg,#059669,#10b981);">
           📊 後台管理
         </a>
       </div>
@@ -350,33 +406,33 @@
       <div class="feature-grid">
         <div class="feature-item">
           <span class="feature-icon">📊</span>
-          <div class="feature-title">即時庫存顯示</div>
-          <div class="feature-desc">隨時查看商品庫存，避免訂購缺貨商品</div>
+          <div class="feature-title">即時庫存</div>
+          <div class="feature-desc">顯示剩餘數量，避免缺貨</div>
         </div>
         <div class="feature-item">
           <span class="feature-icon">🔄</span>
-          <div class="feature-title">自動刷新同步</div>
-          <div class="feature-desc">每 30 秒自動更新庫存，確保資訊即時</div>
+          <div class="feature-title">自動刷新</div>
+          <div class="feature-desc">30秒更新，資訊即時</div>
         </div>
         <div class="feature-item">
           <span class="feature-icon">💰</span>
-          <div class="feature-title">即時計算金額</div>
-          <div class="feature-desc">選購商品時自動計算總金額，清楚明瞭</div>
+          <div class="feature-title">自動計算</div>
+          <div class="feature-desc">選購時即時顯示總額</div>
         </div>
         <div class="feature-item">
           <span class="feature-icon">📱</span>
-          <div class="feature-title">響應式設計</div>
-          <div class="feature-desc">支援手機、平板、電腦，任何裝置都好用</div>
+          <div class="feature-title">響應式</div>
+          <div class="feature-desc">手機平板電腦皆適用</div>
         </div>
         <div class="feature-item">
           <span class="feature-icon">🎨</span>
-          <div class="feature-title">顏色智能預警</div>
-          <div class="feature-desc">庫存充足綠色，偏低橙色，缺貨紅色</div>
+          <div class="feature-title">顏色預警</div>
+          <div class="feature-desc">綠充足 橙偏低 紅缺貨</div>
         </div>
         <div class="feature-item">
           <span class="feature-icon">📋</span>
           <div class="feature-title">訂單摘要</div>
-          <div class="feature-desc">訂單完成後自動生成摘要，方便確認</div>
+          <div class="feature-desc">自動生成可複製分享</div>
         </div>
       </div>
     </div>
@@ -385,6 +441,7 @@
     <div class="card">
       <h2 class="section-title">📖 詳細操作步驟</h2>
       
+      <div class="steps-grid main-steps">
       <!-- 步驟 1 -->
       <div class="step-card">
         <div class="step-number">1</div>
@@ -399,65 +456,56 @@
           </ul>
         </div>
         <img src="https://i.postimg.cc/dtTgLLGB/image.jpg" alt="填寫基本資料" class="step-image" onclick="openModal(this.src)">
-        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+        <div class="image-hint">🔍 點擊放大</div>
       </div>
 
       <!-- 步驟 2 -->
       <div class="step-card">
         <div class="step-number">2</div>
-        <h3 class="step-title">🍗 選擇主餐與配菜</h3>
+        <h3 class="step-title">🍗 選擇商品</h3>
         <div class="step-content">
-          <p><strong>商品選購：</strong></p>
-          <ul style="margin: 8px 0; padding-left: 20px;">
-            <li><strong>主餐</strong>：$150/份，可選擇去骨或保留骨頭</li>
-            <li><strong>單點配菜</strong>：$30/份，多種分類可選</li>
-            <li>點擊 <strong>+/-</strong> 按鈕調整數量</li>
-            <li>查看商品旁的<span style="color:var(--success)">庫存(當前/總數)</span>狀態</li>
+          <ul>
+            <li>主餐 $150/份</li>
+            <li>配菜 $30/份</li>
+            <li>+/- 調整數量</li>
+            <li>查看庫存狀態</li>
           </ul>
-          <div class="tip-box">
-            💡 <strong>小提示：</strong>庫存不足的商品會顯示「缺貨中」標籤且無法選購
-          </div>
         </div>
         <img src="https://i.postimg.cc/L6M33XrZ/image.jpg" alt="選擇主餐與配菜" class="step-image" onclick="openModal(this.src)">
-        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+        <div class="image-hint">🔍 點擊放大</div>
       </div>
 
       <!-- 步驟 3 -->
       <div class="step-card">
         <div class="step-number">3</div>
-        <h3 class="step-title">🌶️ 客製化口味</h3>
+        <h3 class="step-title">🌶️ 客製口味</h3>
         <div class="step-content">
-          <p><strong>調整您的口味偏好：</strong></p>
-          <ul style="margin: 8px 0; padding-left: 20px;">
-            <li><strong>辣度</strong>：不辣 / 微辣 / 小辣 / 中辣 / 大辣</li>
-            <li><strong>鹹度</strong>：清淡 / 正常 / 重鹹</li>
-            <li><strong>檸檬</strong>：加檸檬 / 不加檸檬</li>
-            <li><strong>蔥泥</strong>：加蔥泥 / 不加蔥泥</li>
-            <li><strong>備註</strong>：特殊需求（例如：不吃香菜、多黃瓜）</li>
+          <ul>
+            <li>辣度：5種選擇</li>
+            <li>鹹度：3種選擇</li>
+            <li>檸檬、蔥泥</li>
+            <li>備註說明</li>
           </ul>
         </div>
         <img src="https://i.postimg.cc/Y0BDFx6B/image.jpg" alt="客製化口味" class="step-image" onclick="openModal(this.src)">
-        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+        <div class="image-hint">🔍 點擊放大</div>
       </div>
 
       <!-- 步驟 4 -->
       <div class="step-card">
         <div class="step-number">4</div>
-        <h3 class="step-title">✅ 確認送出訂單</h3>
+        <h3 class="step-title">✅ 送出訂單</h3>
         <div class="step-content">
-          <p><strong>最後確認：</strong></p>
-          <ul style="margin: 8px 0; padding-left: 20px;">
-            <li>查看「訂單預覽」區域，確認商品與數量</li>
-            <li>確認「訂單總額」金額正確</li>
-            <li>點擊 <strong style="color:var(--primary)">「✓ 送出訂單」</strong> 按鈕</li>
-            <li>系統會檢查庫存並生成訂單編號</li>
+          <ul>
+            <li>查看訂單預覽</li>
+            <li>確認總金額</li>
+            <li>點擊送出</li>
+            <li>取得訂單編號</li>
           </ul>
-          <div class="tip-box">
-            ✅ <strong>訂單成功後：</strong>會顯示訂單編號（例如：1010-001）和完整訂單摘要，可直接複製分享
-          </div>
         </div>
         <img src="https://i.postimg.cc/KvyDDzd1/image.jpg" alt="確認送出訂單" class="step-image" onclick="openModal(this.src)">
-        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
       </div>
     </div>
     
@@ -465,42 +513,38 @@
     <div class="card">
       <h2 class="section-title">🔧 進階功能</h2>
       
+      <div class="steps-grid advanced-steps">
       <!-- 後台訂單管理 -->
       <div class="step-card">
         <div class="step-number">📊</div>
-        <h3 class="step-title">後台訂單管理</h3>
+        <h3 class="step-title">後台管理</h3>
         <div class="step-content">
-          <p><strong>店家可透過 Google Sheets 查看所有訂單：</strong></p>
-          <ul style="margin: 8px 0; padding-left: 20px;">
-            <li>訂單時間、編號、顧客資料</li>
-            <li>完整的訂購項目與金額</li>
-            <li>格式化的訂單摘要（方便複製到 LINE）</li>
-            <li>可匯出 Excel 進行分析</li>
+          <ul>
+            <li>Google Sheets 查看訂單</li>
+            <li>訂單摘要複製到 LINE</li>
+            <li>匯出 Excel 分析</li>
+            <li>即時監控訂單狀態</li>
           </ul>
         </div>
         <img src="https://i.postimg.cc/TYXJJwZp/image.jpg" alt="後台訂單管理" class="step-image" onclick="openModal(this.src)">
-        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+        <div class="image-hint">🔍 點擊放大</div>
       </div>
       
       <!-- 庫存即時連動 -->
       <div class="step-card">
         <div class="step-number">🔄</div>
-        <h3 class="step-title">庫存即時連動</h3>
+        <h3 class="step-title">庫存連動</h3>
         <div class="step-content">
-          <p><strong>智能庫存管理系統：</strong></p>
-          <ul style="margin: 8px 0; padding-left: 20px;">
-            <li>店家在 Google Sheets 調整庫存 → 前端自動更新</li>
-            <li>顧客下單 → 後台自動扣減庫存</li>
-            <li>防超賣機制：多人同時下單也不會超賣</li>
-            <li>每 30 秒自動刷新，確保資訊即時</li>
-            <li>庫存為 0 自動顯示「缺貨中」並禁用選購</li>
+          <ul>
+            <li>店家調整 → 自動更新</li>
+            <li>下單 → 自動扣減</li>
+            <li>防超賣鎖定機制</li>
+            <li>30秒自動刷新</li>
           </ul>
-          <div class="tip-box">
-            🔒 <strong>安全保證：</strong>採用 LockService 鎖定機制，絕對不會發生超賣問題
-          </div>
         </div>
         <img src="https://i.postimg.cc/tCHNNTLX/image.jpg" alt="庫存即時連動" class="step-image" onclick="openModal(this.src)">
-        <div class="image-hint">🔍 點擊圖片可放大查看</div>
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
       </div>
     </div>
 
@@ -508,80 +552,76 @@
     <div class="card">
       <h2 class="section-title">❓ 常見問題</h2>
       
+      <div class="faq-grid">
       <div class="faq-item">
-        <div class="faq-question">Q1: 如何知道商品還有沒有庫存？</div>
+        <div class="faq-question">Q1: 如何查看庫存？</div>
         <div class="faq-answer">
-          每個商品旁邊都會顯示 <strong>庫存(當前/總數)</strong>，例如：庫存(12/30)。
-          <br>• 🟢 <strong>綠色</strong>：庫存充足
-          <br>• 🟡 <strong>橙色</strong>：庫存偏低
-          <br>• 🔴 <strong>紅色</strong>：已缺貨（會顯示「缺貨中」標籤）
+          商品旁顯示<strong>庫存(當前/總數)</strong><br>🟢綠色充足 🟡橙色偏低 🔴紅色缺貨
         </div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-question">Q2: 如果庫存不足會怎樣？</div>
+        <div class="faq-question">Q2: 庫存不足怎麼辦？</div>
         <div class="faq-answer">
-          送出訂單時，系統會自動檢查庫存。如果某商品庫存不足，會顯示錯誤訊息並<strong>自動將該商品數量歸零</strong>，您可以立即調整訂單重新送出。
+          系統會顯示錯誤並<strong>自動歸零</strong>該商品，可立即調整訂單重新送出
         </div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-question">Q3: 可以修改或取消訂單嗎？</div>
+        <div class="faq-question">Q3: 可以改單嗎？</div>
         <div class="faq-answer">
-          訂單送出後無法直接修改。如需更改，請聯繫店家並提供您的訂單編號。建議送出前仔細確認「訂單預覽」區域的內容。
+          送出後無法直接修改，請聯繫店家並提供訂單編號
         </div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-question">Q4: 訂單編號是什麼格式？</div>
+        <div class="faq-question">Q4: 訂單編號格式？</div>
         <div class="faq-answer">
-          訂單編號格式為：<strong>月日-序號</strong>（例如：1010-001）
-          <br>• 1010 = 10 月 10 日
-          <br>• 001 = 當天第 1 筆訂單
-          <br>每天序號從 001 重新開始。
+          <strong>月日-序號</strong>（例:1010-001）<br>每天從001重新開始
         </div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-question">Q5: 為什麼有些商品無法選購？</div>
+        <div class="faq-question">Q5: 為何無法選購？</div>
         <div class="faq-answer">
-          顯示「缺貨中」標籤的商品表示當前庫存為 0，無法選購。建議選擇其他商品或稍後再試（庫存每 30 秒自動更新）。
+          顯示「缺貨中」表示庫存為0，請選擇其他商品或稍後再試
         </div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-question">Q6: 多人同時下單會超賣嗎？</div>
+        <div class="faq-question">Q6: 會超賣嗎？</div>
         <div class="faq-answer">
-          <strong>不會！</strong>系統採用智能鎖定機制，即使多人同時下單同一商品，也能確保庫存不會超賣。每筆訂單送出時都會即時檢查最新庫存。
+          <strong>不會！</strong>採用智能鎖定機制，確保庫存準確無誤
         </div>
+      </div>
       </div>
     </div>
 
     <!-- 注意事項 -->
     <div class="card">
       <h2 class="section-title">⚠️ 注意事項</h2>
-      <div style="background:#fff7ed; padding:clamp(14px,3.5vw,18px); border-radius:clamp(8px,2vw,10px); border:1.5px solid #fed7aa;">
-        <ul style="margin:0; padding-left:20px; line-height:2;">
-          <li>請於預訂的取餐時間準時到場，避免影響其他顧客</li>
-          <li>訂單送出後即開始準備，建議提前 10-15 分鐘預訂</li>
-          <li>庫存資訊每 30 秒自動更新，實際庫存以送出時為準</li>
-          <li>如有任何問題，請聯繫店家或加入官方 LINE 帳號</li>
-          <li>請確保手機暢通，以便店家聯繫</li>
+      <div style="background:#fff7ed; padding:clamp(12px,3vw,14px); border-radius:clamp(6px,1.5vw,8px); border:1.5px solid #fed7aa;">
+        <ul style="margin:0; padding-left:18px; line-height:1.7; font-size:clamp(11px,2.5vw,12px);">
+          <li>準時到場取餐</li>
+          <li>建議提前10-15分鐘預訂</li>
+          <li>庫存30秒更新，以送出時為準</li>
+          <li>問題請聯繫店家或加入LINE</li>
+          <li>確保手機暢通</li>
         </ul>
       </div>
     </div>
 
     <!-- CTA -->
     <div class="card" style="text-align:center; background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%); border:2px solid var(--accent);">
-      <div style="font-size:clamp(20px,5vw,24px); font-weight:800; margin-bottom:clamp(12px,3vw,16px); color:var(--primary);">
-        準備好開始訂購了嗎？
+      <div style="font-size:clamp(18px,4.5vw,22px); font-weight:800; margin-bottom:clamp(10px,2.5vw,12px); color:var(--primary);">
+        立即體驗系統
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2.5vw,12px); max-width:600px; margin:0 auto;">
-        <a href="https://511669a1.foodcarshop.pages.dev/%E9%B9%BD%E6%B0%B4%E9%9B%9E%E5%B0%88%E6%A1%88/%E5%85%AC%E9%96%8B%E8%A9%A6%E7%AF%84%E7%89%88%E6%9C%AC/opentext" target="_blank" class="btn-primary" style="font-size:clamp(16px,4vw,18px);">
-          🍗 前往訂購
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2.5vw,12px); max-width:500px; margin:0 auto;">
+        <a href="https://511669a1.foodcarshop.pages.dev/%E9%B9%BD%E6%B0%B4%E9%9B%9E%E5%B0%88%E6%A1%88/%E5%85%AC%E9%96%8B%E8%A9%A6%E7%AF%84%E7%89%88%E6%9C%AC/opentext" target="_blank" class="btn-primary" style="font-size:clamp(14px,3.5vw,16px);">
+          🛒 訂購頁
         </a>
-        <a href="https://docs.google.com/spreadsheets/d/1zY-y7flT2zL3SrVFL3kr4x8whwsQz_Ai5QwGXqlNVXM/edit?gid=1899503625#gid=1899503625" target="_blank" class="btn-primary" style="font-size:clamp(16px,4vw,18px); background:linear-gradient(135deg,#059669,#10b981);">
-          📊 後台管理
+        <a href="https://docs.google.com/spreadsheets/d/1zY-y7flT2zL3SrVFL3kr4x8whwsQz_Ai5QwGXqlNVXM/edit?gid=1899503625#gid=1899503625" target="_blank" class="btn-primary" style="font-size:clamp(14px,3.5vw,16px); background:linear-gradient(135deg,#059669,#10b981);">
+          📊 後台
         </a>
       </div>
     </div>
