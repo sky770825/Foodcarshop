@@ -902,7 +902,7 @@
     };
 
     // Google Apps Script URL
-    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycby-g-IDChhg2e8chZp6UCJHOYDJ70WlM9sjHwurmejLnVrWGrIxd1S_By-aOMw_-WRu/exec";
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzyGjDIAng3QSO-zyj6NxHQxFB0Tb5WxXLe6_tK65rvIGeAlce0V9em_71eOewWrQhO/exec";
 
     // ====== 載入庫存狀態 ======
     async function loadInventory() {
@@ -923,24 +923,15 @@
       }
     }
 
-    // ====== 更新商品的缺貨狀態和庫存顯示 ======
+    // ====== 更新商品的缺貨狀態 ======
     function updateStockStatus() {
-      // 更新主餐的缺貨狀態和庫存
+      // 更新主餐的缺貨狀態
       document.querySelectorAll('#mains .product-card').forEach(card => {
         const input = card.querySelector('input.qty');
         const itemName = input?.dataset.name;
-        const stockEl = card.querySelector('.product-stock');
         
         if (itemName && INVENTORY[itemName]) {
           const stock = INVENTORY[itemName];
-          
-          // 更新庫存顯示
-          if (stockEl) {
-            const current = stock.stock || 0;
-            const initial = stock.initialStock || 0;
-            const stockColor = current === 0 ? 'var(--danger)' : (current <= initial * 0.3 ? 'var(--accent)' : 'var(--success)');
-            stockEl.innerHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
-          }
           
           if (!stock.available || stock.stock <= 0) {
             // 標記為缺貨
@@ -970,33 +961,28 @@
         }
       });
       
-      // 更新單點配菜的缺貨狀態和庫存
+      // 更新單點配菜的缺貨狀態
       document.querySelectorAll('#sides .side-item').forEach(item => {
         const input = item.querySelector('input.qty');
         const itemName = input?.dataset.name;
-        const stockEl = item.querySelector('.side-stock');
         
         if (itemName && INVENTORY[itemName]) {
           const stock = INVENTORY[itemName];
-          
-          // 更新庫存顯示
-          if (stockEl) {
-            const current = stock.stock || 0;
-            const initial = stock.initialStock || 0;
-            const stockColor = current === 0 ? 'var(--danger)' : (current <= initial * 0.3 ? 'var(--accent)' : 'var(--success)');
-            stockEl.innerHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
-          }
           
           if (!stock.available || stock.stock <= 0) {
             item.style.opacity = '0.5';
             item.querySelectorAll('input, button').forEach(el => {
               el.disabled = true;
             });
-          } else {
-            item.style.opacity = '1';
-            item.querySelectorAll('input, button').forEach(el => {
-              el.disabled = false;
-            });
+            
+            // 添加缺貨提示
+            if (!item.querySelector('.stock-badge')) {
+              const badge = document.createElement('span');
+              badge.className = 'stock-badge';
+              badge.style.cssText = 'color: var(--danger); font-size: 10px; margin-left: 4px;';
+              badge.textContent = '(缺貨)';
+              item.querySelector('.side-item-name').appendChild(badge);
+            }
           }
         }
       });
@@ -1012,12 +998,9 @@
         <div class="product-image-wrap" data-image="${item.img.replace('w=400&h=400', 'w=800&h=800')}" data-name="${item.name}">
           <img src="${item.img}" alt="${item.name}" class="product-image" loading="lazy" />
         </div>
-        <div style="display:flex; flex-direction:column; gap:clamp(3px,0.8vw,4px); margin-bottom:clamp(5px,1.2vw,6px);">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="product-name" style="margin-bottom:0;">${item.name}</div>
-            <div class="product-price" style="margin-bottom:0;">$${PRICE.main}</div>
-          </div>
-          <div class="product-stock" style="font-size:clamp(11px,2.5vw,12px); color:var(--muted);">庫存載入中...</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
+          <div class="product-name" style="margin-bottom:0;">${item.name}</div>
+          <div class="product-price" style="margin-bottom:0;">$${PRICE.main}</div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(4px,1vw,6px);">
           <div class="qty-control">
@@ -1070,10 +1053,7 @@
         const sideItem = document.createElement('div');
         sideItem.className = 'side-item';
         sideItem.innerHTML = `
-          <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
-            <div class="side-item-name">${item.name}</div>
-            <div class="side-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
-          </div>
+          <div class="side-item-name">${item.name}</div>
           <div class="qty-control">
             <button type="button" class="qty-btn" data-action="decrease" data-target="${item.name}">−</button>
             <input 
