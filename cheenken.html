@@ -718,8 +718,10 @@
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-content">
       <div class="loading-icon">🍗</div>
-      <div class="loading-text">載入中...</div>
-      <div class="loading-subtext">正在同步庫存與設定</div>
+      <div class="loading-text">載入中<span id="loadingDots">...</span></div>
+      <div class="loading-subtext">
+        <span id="loadingCountdown">3</span> 秒後完成
+      </div>
     </div>
   </div>
   
@@ -1360,6 +1362,29 @@
     // ====== 頁面載入時初始化 ======
     window.addEventListener('DOMContentLoaded', async () => {
       const loadingOverlay = document.getElementById('loadingOverlay');
+      const countdownEl = document.getElementById('loadingCountdown');
+      const dotsEl = document.getElementById('loadingDots');
+      
+      // 倒數計時器
+      let countdown = 3;
+      let countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdownEl) {
+          countdownEl.textContent = countdown;
+        }
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+      
+      // 點點點動畫
+      let dots = 0;
+      const dotsInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        if (dotsEl) {
+          dotsEl.textContent = '.'.repeat(dots || 1);
+        }
+      }, 400);
       
       try {
         // 並行載入系統設定和庫存（更快）
@@ -1372,6 +1397,10 @@
       } catch (err) {
         console.warn('初始化時發生錯誤:', err);
       } finally {
+        // 停止計時器
+        clearInterval(countdownInterval);
+        clearInterval(dotsInterval);
+        
         // 隱藏載入提示（延遲 300ms 讓動畫更流暢）
         setTimeout(() => {
           loadingOverlay.classList.add('hidden');
