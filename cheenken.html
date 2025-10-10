@@ -1234,6 +1234,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       // 載入庫存狀態
       loadInventory();
+      
+      // 每 30 秒自動刷新庫存（即時更新）
+      setInterval(() => {
+        loadInventory();
+        console.log('🔄 庫存已自動更新', new Date().toLocaleTimeString());
+      }, 30000);
     });
 
     // ====== 清空按鈕 ======
