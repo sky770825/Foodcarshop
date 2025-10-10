@@ -672,9 +672,57 @@
       font-size: clamp(9px, 2vw, 10px);
       color: #9ca3af;
     }
+    
+    /* 載入提示 */
+    .loading-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity .3s ease;
+    }
+    .loading-overlay.hidden{
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loading-content{
+      text-align: center;
+      padding: clamp(20px, 5vw, 30px);
+    }
+    .loading-icon{
+      font-size: clamp(48px, 12vw, 64px);
+      margin-bottom: clamp(12px, 3vw, 16px);
+      animation: bounce 1s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .loading-text{
+      font-size: clamp(14px, 3.5vw, 16px);
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .loading-subtext{
+      font-size: clamp(11px, 2.5vw, 12px);
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
+  <!-- 載入提示遮罩 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-icon">🍗</div>
+      <div class="loading-text">載入中...</div>
+      <div class="loading-subtext">正在同步庫存與設定</div>
+    </div>
+  </div>
+  
   <!-- 品牌 Header -->
   <header class="brand-header">
     <div class="brand-logo-wrap">
@@ -1310,12 +1358,29 @@
     recalc();
 
     // ====== 頁面載入時初始化 ======
-    window.addEventListener('DOMContentLoaded', () => {
-      // 載入系統設定（取餐時間、取餐方式等）
-      loadConfig();
+    window.addEventListener('DOMContentLoaded', async () => {
+      const loadingOverlay = document.getElementById('loadingOverlay');
       
-      // 載入庫存狀態
-      loadInventory();
+      try {
+        // 並行載入系統設定和庫存（更快）
+        await Promise.all([
+          loadConfig(),
+          loadInventory()
+        ]);
+        
+        console.log('✅ 系統初始化完成');
+      } catch (err) {
+        console.warn('初始化時發生錯誤:', err);
+      } finally {
+        // 隱藏載入提示（延遲 300ms 讓動畫更流暢）
+        setTimeout(() => {
+          loadingOverlay.classList.add('hidden');
+          // 500ms 後完全移除
+          setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+          }, 500);
+        }, 300);
+      }
       
       // 每 30 秒自動刷新庫存（即時更新）
       setInterval(() => {
