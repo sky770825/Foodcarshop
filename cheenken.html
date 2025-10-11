@@ -760,6 +760,20 @@
       <div class="card">
         <h2 class="section-title">訂購資料</h2>
         
+        <!-- 場地選擇（全寬顯示） -->
+        <div class="form-group">
+          <label class="form-label">📍 取餐場地<span class="required">*</span></label>
+          <select required name="venue" id="venueSelect" style="border-color:var(--primary); font-weight:600; font-size:clamp(15px,3.5vw,16px);">
+            <option value="">請選擇取餐場地...</option>
+          </select>
+          <!-- 當前場地顯示 -->
+          <div id="currentVenueDisplay" style="display:none; margin-top:8px; padding:10px 14px; background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border:1.5px solid #fbbf24; border-radius:8px; font-size:clamp(13px,3vw,14px); font-weight:600; color:#92400e; text-align:center;">
+            <span style="display:inline-block; margin-right:6px;">🎯</span>
+            <span>當前場地：</span>
+            <span id="currentVenueName" style="color:#b45309;"></span>
+          </div>
+        </div>
+        
         <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(12px,3vw,16px);">
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label">餐群姓名 & 群組ID<span class="required">*</span></label>
@@ -915,7 +929,14 @@
     // 庫存狀態（從後端動態載入）
     let INVENTORY = {};
     
-    const SIDE_ITEMS = {
+    // 配菜分類（從後端動態載入）
+    let SIDE_CATEGORIES = {};
+    
+    // 當前選擇的場地（記住用戶選擇）
+    let CURRENT_VENUE = null;
+    
+    // 降級方案：如果後端無法載入，使用預設配菜列表
+    const DEFAULT_SIDE_ITEMS = {
       "葉菜類": [
         { name: "花椰菜" },
         { name: "龍鬚菜" },
@@ -959,24 +980,42 @@
     };
 
     // Google Apps Script URL
-    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwrEYFZmBkhcxTnhXz1MBRUKHTMN-zHmBBxa0eGX4YlIq90cBdM6hTo3JCE1YQy6EWO/exec";
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwSIWGFwutYplZ-oNd6-0ZeSkO4l8zNQ76ErAMN3TIzbLDCb7IQMWRU0H4bz6qkySf9/exec";
 
     // ====== 載入庫存狀態 ======
-    async function loadInventory() {
+    async function loadInventory(venue) {
       try {
-        const res = await fetch(`${GAS_ENDPOINT}?action=getInventory`);
+        // 如果沒有指定場地，使用當前選擇的場地
+        const targetVenue = venue || CURRENT_VENUE;
+        
+        // 構建 API 網址（如果有場地就加上場地參數）
+        let apiUrl = `${GAS_ENDPOINT}?action=getInventory`;
+        if (targetVenue) {
+          apiUrl += `&venue=${targetVenue}`;
+        }
+        
+        const res = await fetch(apiUrl);
         const data = await res.json();
         
         if (data.ok) {
           INVENTORY = data.inventory;
-          console.log('庫存已載入:', INVENTORY);
+          SIDE_CATEGORIES = data.categories || {}; // 載入配菜分類
+          console.log('✅ 庫存已載入:', INVENTORY);
+          console.log('✅ 配菜分類已載入:', SIDE_CATEGORIES);
+          
+          // 如果從後端載入了分類數據，重新生成配菜列表
+          if (Object.keys(SIDE_CATEGORIES).length > 0) {
+            console.log('🔄 使用後端配菜分類，重新生成配菜列表');
+            regenerateSideItems();
+          }
           
           // 更新商品卡片的缺貨狀態
           updateStockStatus();
         }
       } catch (err) {
-        console.warn('無法載入庫存，使用預設設定:', err);
-        // 如果無法連線，仍允許訂購（降級處理）
+        console.warn('⚠️ 無法載入庫存，使用預設設定:', err);
+        // 如果無法連線，使用降級方案
+        SIDE_CATEGORIES = DEFAULT_SIDE_ITEMS;
       }
     }
 
@@ -998,10 +1037,129 @@
           if (data.methodOptions) {
             updateMethodOptions(data.methodOptions);
           }
+          
+          // 動態生成場地選項
+          if (data.venueOptions) {
+            updateVenueOptions(data.venueOptions);
+          }
         }
       } catch (err) {
         console.warn('無法載入系統設定，使用預設選項:', err);
       }
+    }
+    
+    // 更新場地選項
+    function updateVenueOptions(venues) {
+      const venueSelect = document.getElementById('venueSelect');
+      
+      // 清空現有選項（保留第一個提示）
+      venueSelect.innerHTML = '<option value="">請選擇取餐場地...</option>';
+      
+      // 只添加營業中的場地選項（隱藏暫停的場地）
+      venues.forEach(venue => {
+        // 跳過暫停營業的場地
+        if (venue.status === '暫停') {
+          console.log(`⏭️ 跳過暫停場地：${venue.name}`);
+          return; // 不顯示在下拉選單中
+        }
+        
+        const option = document.createElement('option');
+        option.value = venue.code;
+        // 添加表情符號
+        const emoji = '📍';
+        option.textContent = `${emoji} ${venue.name}`;
+        
+        venueSelect.appendChild(option);
+      });
+      
+      // 監聽場地選擇變更事件
+      venueSelect.addEventListener('change', async function() {
+        const selectedVenue = this.value;
+        
+        if (selectedVenue) {
+          console.log(`🔄 切換到場地：${selectedVenue}`);
+          
+          // 如果之前已經選過場地，清空購物車
+          if (CURRENT_VENUE && CURRENT_VENUE !== selectedVenue) {
+            // 重置所有數量輸入
+            qtyInputs.forEach(q => {
+              q.value = 0;
+              q.setAttribute('value', '0');
+            });
+            recalc();
+            console.log('🧹 購物車已清空（切換場地）');
+          }
+          
+          // 記住當前選擇的場地
+          CURRENT_VENUE = selectedVenue;
+          
+          // 顯示載入提示
+          const loadingMsg = document.createElement('div');
+          loadingMsg.id = 'venueLoadingMsg';
+          loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:#fff; padding:20px 40px; border-radius:10px; z-index:9999; font-size:16px; font-weight:600;';
+          loadingMsg.textContent = '🔄 載入場地資料中...';
+          document.body.appendChild(loadingMsg);
+          
+          try {
+            // 重新載入該場地的庫存
+            const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}`);
+            const data = await res.json();
+            
+            if (data.ok) {
+              INVENTORY = data.inventory;
+              SIDE_CATEGORIES = data.categories || {};
+              
+              console.log('✅ 場地庫存已載入:', INVENTORY);
+              console.log('✅ 場地配菜分類已載入:', SIDE_CATEGORIES);
+              
+              // 重新生成配菜列表
+              if (Object.keys(SIDE_CATEGORIES).length > 0) {
+                regenerateSideItems();
+              }
+              
+              // 更新商品卡片的缺貨狀態
+              updateStockStatus();
+              
+              // 移除載入提示
+              document.body.removeChild(loadingMsg);
+              
+              // 更新當前場地顯示
+              const currentVenueDisplay = document.getElementById('currentVenueDisplay');
+              const currentVenueName = document.getElementById('currentVenueName');
+              if (currentVenueDisplay && currentVenueName) {
+                // 從 select 選項中獲取場地名稱
+                const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+                const venueName = selectedOption.textContent.replace('📍 ', '').trim();
+                
+                currentVenueName.textContent = venueName;
+                currentVenueDisplay.style.display = 'block';
+              }
+              
+              // 顯示成功提示
+              const successMsg = document.createElement('div');
+              successMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600; animation: slideIn 0.3s ease;';
+              successMsg.textContent = `✅ 場地資料已更新`;
+              document.body.appendChild(successMsg);
+              
+              setTimeout(() => {
+                if (document.body.contains(successMsg)) {
+                  document.body.removeChild(successMsg);
+                }
+              }, 2000);
+              
+            } else {
+              document.body.removeChild(loadingMsg);
+              alert('❌ 載入場地資料失敗：' + data.msg);
+            }
+          } catch (err) {
+            document.body.removeChild(loadingMsg);
+            console.error('載入場地資料錯誤:', err);
+            alert('❌ 載入場地資料失敗，請重新整理頁面');
+          }
+        }
+      });
+      
+      console.log('✅ 場地選項已更新');
     }
 
     // 更新取餐時間選項
@@ -1174,61 +1332,88 @@
 
     const sidesBox = document.querySelector('#sides');
     
-    // 依分類生成單點配菜（可摺疊）
-    Object.keys(SIDE_ITEMS).forEach((category, index) => {
-      // 分類區塊容器
-      const categoryBlock = document.createElement('div');
-      categoryBlock.className = 'category-block';
+    // 生成配菜列表（初次載入使用預設配菜）
+    function generateSideItems(sideCategories) {
+      // 清空現有配菜列表
+      sidesBox.innerHTML = '';
       
-      // 分類標題
-      const categoryTitle = document.createElement('div');
-      categoryTitle.className = 'category-title';
-      categoryTitle.innerHTML = `
-        <span>${category} <small style="opacity:0.7">(${SIDE_ITEMS[category].length}項)</small></span>
-        <span class="toggle-icon">▼</span>
-      `;
-      categoryBlock.appendChild(categoryTitle);
-      
-      // 分類內容
-      const categoryContent = document.createElement('div');
-      categoryContent.className = 'category-content';
-      // 所有分類預設收合
-      
-      // 該分類的品項
-      SIDE_ITEMS[category].forEach(item => {
-        const sideItem = document.createElement('div');
-        sideItem.className = 'side-item';
-        sideItem.innerHTML = `
-          <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
-            <div class="side-item-name">${item.name}</div>
-            <div class="side-stock" style="font-size:clamp(9px,2vw,10px); color:var(--muted); white-space:nowrap;">載入中...</div>
-          </div>
-          <div class="qty-control">
-            <button type="button" class="qty-btn" data-action="decrease" data-target="${item.name}">−</button>
-            <input 
-              type="number" 
-              min="0" 
-              max="99"
-              value="0" 
-              data-type="side" 
-              data-name="${item.name}" 
-              class="qty"
-            />
-            <button type="button" class="qty-btn" data-action="increase" data-target="${item.name}">+</button>
-          </div>
+      // 依分類生成單點配菜（可摺疊）
+      Object.keys(sideCategories).forEach((category, index) => {
+        const items = sideCategories[category];
+        
+        // 分類區塊容器
+        const categoryBlock = document.createElement('div');
+        categoryBlock.className = 'category-block';
+        
+        // 分類標題
+        const categoryTitle = document.createElement('div');
+        categoryTitle.className = 'category-title';
+        categoryTitle.innerHTML = `
+          <span>${category} <small style="opacity:0.7">(${items.length}項)</small></span>
+          <span class="toggle-icon">▼</span>
         `;
-        categoryContent.appendChild(sideItem);
+        categoryBlock.appendChild(categoryTitle);
+        
+        // 分類內容
+        const categoryContent = document.createElement('div');
+        categoryContent.className = 'category-content';
+        // 所有分類預設收合
+        
+        // 該分類的品項
+        items.forEach(item => {
+          const itemName = item.name || item;
+          const sideItem = document.createElement('div');
+          sideItem.className = 'side-item';
+          sideItem.innerHTML = `
+            <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+              <div class="side-item-name">${itemName}</div>
+              <div class="side-stock" style="font-size:clamp(9px,2vw,10px); color:var(--muted); white-space:nowrap;">載入中...</div>
+            </div>
+            <div class="qty-control">
+              <button type="button" class="qty-btn" data-action="decrease" data-target="${itemName}">−</button>
+              <input 
+                type="number" 
+                min="0" 
+                max="99"
+                value="0" 
+                data-type="side" 
+                data-name="${itemName}" 
+                class="qty"
+              />
+              <button type="button" class="qty-btn" data-action="increase" data-target="${itemName}">+</button>
+            </div>
+          `;
+          categoryContent.appendChild(sideItem);
+        });
+        
+        categoryBlock.appendChild(categoryContent);
+        sidesBox.appendChild(categoryBlock);
+        
+        // 點擊標題切換展開/收合
+        categoryTitle.addEventListener('click', () => {
+          categoryTitle.classList.toggle('active');
+          categoryContent.classList.toggle('active');
+        });
       });
       
-      categoryBlock.appendChild(categoryContent);
-      sidesBox.appendChild(categoryBlock);
-      
-      // 點擊標題切換展開/收合
-      categoryTitle.addEventListener('click', () => {
-        categoryTitle.classList.toggle('active');
-        categoryContent.classList.toggle('active');
+      // 重新綁定數量輸入監聽
+      document.querySelectorAll('.qty').forEach(input => {
+        input.addEventListener('input', recalc);
+        input.addEventListener('input', function() {
+          this.setAttribute('value', this.value);
+        });
       });
-    });
+    }
+    
+    // 初次載入使用預設配菜
+    generateSideItems(DEFAULT_SIDE_ITEMS);
+    
+    // 重新生成配菜列表（當從後端載入新數據時）
+    function regenerateSideItems() {
+      generateSideItems(SIDE_CATEGORIES);
+      // 重新更新庫存狀態
+      updateStockStatus();
+    }
 
     // ====== 圖片點擊放大功能 ======
     const imageModal = document.getElementById('imageModal');
@@ -1411,10 +1596,14 @@
         }, 300);
       }
       
-      // 每 30 秒自動刷新庫存（即時更新）
+      // 每 30 秒自動刷新庫存（即時更新，使用當前場地）
       setInterval(() => {
-        loadInventory();
-        console.log('🔄 庫存已自動更新', new Date().toLocaleTimeString());
+        if (CURRENT_VENUE) {
+          console.log(`🔄 自動刷新場地 ${CURRENT_VENUE} 的庫存...`, new Date().toLocaleTimeString());
+        } else {
+          console.log('🔄 自動刷新預設庫存...', new Date().toLocaleTimeString());
+        }
+        loadInventory(); // 會自動使用 CURRENT_VENUE
       }, 30000);
     });
 
@@ -1441,6 +1630,18 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const {items, total} = recalc();
+      
+      // 驗證場地（如果有場地選單）
+      const venueSelect = document.getElementById('venueSelect');
+      if (venueSelect && !form.venue.value) {
+        result.innerHTML = '<div class="message error">⚠️ 請選擇取餐場地</div>';
+        venueSelect.focus();
+        venueSelect.style.borderColor = '#dc2626';
+        setTimeout(() => {
+          venueSelect.style.borderColor = '';
+        }, 2000);
+        return;
+      }
       
       // 驗證時間
       if (!etaCombined.value) {
@@ -1484,6 +1685,14 @@
       const [hour, minute] = etaCombined.value.split(':');
       const timeStr = `${hour}點${minute}分`;
       
+      // 取得場地名稱
+      let venueName = '';
+      if (form.venue && form.venue.value) {
+        const venueSelect = document.getElementById('venueSelect');
+        const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+        venueName = selectedOption.textContent.replace('📍 ', '').trim();
+      }
+      
       // 格式化餐點（每行3個）
       const itemLines = [];
       for (let i = 0; i < items.length; i += 3) {
@@ -1495,12 +1704,13 @@
       // 格式化調味
       const tasteText = Object.entries(tasteOptions).map(([k, v]) => `${k}：${v}`).join('\n');
       
-      // 組合訂單摘要
+      // 組合訂單摘要（包含場地）
       const orderSummary = `① 姓名.後三碼：${mainName}.${last3Digits}
-② 想預訂的時間：${timeStr}
-③ 想預訂的餐點：
+② 取餐場地：${venueName || '未指定'}
+③ 想預訂的時間：${timeStr}
+④ 想預訂的餐點：
 ${itemsText}
-④ 想搭配的調味：
+⑤ 想搭配的調味：
 ${tasteText}
 金額：${total}`;
 
@@ -1508,6 +1718,7 @@ ${tasteText}
         ts: new Date().toISOString(),
         name: form.name.value.trim(),
         phone: form.phone.value.trim(),
+        venue: form.venue ? form.venue.value : '', // 場地代碼
         method: form.method.value,
         eta: etaCombined.value,
         itemsDetail,
