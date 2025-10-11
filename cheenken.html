@@ -919,7 +919,11 @@
     };
 
     // === 商品項目（含圖片） ===
-    const MAIN_ITEMS = [
+    // 主餐列表（從後端動態載入）
+    let MAIN_ITEMS = [];
+    
+    // 降級方案：預設主餐列表
+    const DEFAULT_MAIN_ITEMS = [
       { name: "鹽水半雞", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=400&fit=crop&q=80" },
       { name: "煙燻半雞", img: "https://images.unsplash.com/photo-1594221708779-94832f4320d1?w=400&h=400&fit=crop&q=80" },
       { name: "油雞腿", img: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400&h=400&fit=crop&q=80" },
@@ -980,7 +984,7 @@
     };
 
     // Google Apps Script URL
-    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwSIWGFwutYplZ-oNd6-0ZeSkO4l8zNQ76ErAMN3TIzbLDCb7IQMWRU0H4bz6qkySf9/exec";
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzonIjOLX6fQDFHq8kJH7Ojxwht9SDoRYPYM6iBygiMq96dYYHJJGVh5xXKX_dhD_FX/exec";
 
     // ====== 載入庫存狀態 ======
     async function loadInventory(venue) {
@@ -1002,6 +1006,14 @@
           SIDE_CATEGORIES = data.categories || {}; // 載入配菜分類
           console.log('✅ 庫存已載入:', INVENTORY);
           console.log('✅ 配菜分類已載入:', SIDE_CATEGORIES);
+          
+          // 如果從後端載入了主餐數據，重新生成主餐列表
+          if (data.mainItems && data.mainItems.length > 0) {
+            MAIN_ITEMS = data.mainItems;
+            console.log('✅ 主餐列表已載入:', MAIN_ITEMS);
+            console.log('🔄 使用後端主餐列表，重新生成主餐卡片');
+            generateMainItems(MAIN_ITEMS);
+          }
           
           // 如果從後端載入了分類數據，重新生成配菜列表
           if (Object.keys(SIDE_CATEGORIES).length > 0) {
@@ -1081,8 +1093,8 @@
           
           // 如果之前已經選過場地，清空購物車
           if (CURRENT_VENUE && CURRENT_VENUE !== selectedVenue) {
-            // 重置所有數量輸入
-            qtyInputs.forEach(q => {
+            // 重置所有數量輸入（實時獲取，包含動態生成的主餐）
+            document.querySelectorAll('.qty').forEach(q => {
               q.value = 0;
               q.setAttribute('value', '0');
             });
@@ -1111,6 +1123,13 @@
               
               console.log('✅ 場地庫存已載入:', INVENTORY);
               console.log('✅ 場地配菜分類已載入:', SIDE_CATEGORIES);
+              
+              // 重新生成主餐列表
+              if (data.mainItems && data.mainItems.length > 0) {
+                MAIN_ITEMS = data.mainItems;
+                console.log('✅ 場地主餐列表已載入:', MAIN_ITEMS);
+                generateMainItems(MAIN_ITEMS);
+              }
               
               // 重新生成配菜列表
               if (Object.keys(SIDE_CATEGORIES).length > 0) {
@@ -1289,46 +1308,66 @@
       });
     }
 
-    // ====== 產生商品卡片（多欄網格 + 圖片） ======
+    // ====== 產生主餐卡片（動態生成） ======
     const mainsBox = document.querySelector('#mains');
-    MAIN_ITEMS.forEach(item => {
-      const card = document.createElement('div');
-      card.className = item.outOfStock ? 'product-card out-of-stock' : 'product-card';
-      card.innerHTML = `
-        ${item.outOfStock ? '<div class="out-of-stock-badge">缺貨中</div>' : ''}
-        <div class="product-image-wrap" data-image="${item.img.replace('w=400&h=400', 'w=800&h=800')}" data-name="${item.name}">
-          <img src="${item.img}" alt="${item.name}" class="product-image" loading="lazy" />
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
-          <div style="display:flex; align-items:center; gap:clamp(4px,1vw,6px); flex:1;">
-            <div class="product-name" style="margin-bottom:0;">${item.name}</div>
-            <div class="product-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
+    
+    // 生成主餐列表
+    function generateMainItems(items) {
+      // 清空現有主餐列表
+      mainsBox.innerHTML = '';
+      
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        
+        // 使用 Sheet 中的圖片網址，如果沒有則使用預設
+        const imageUrl = item.imageUrl || item.img || 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=400&fit=crop&q=80';
+        
+        card.innerHTML = `
+          <div class="product-image-wrap" data-image="${imageUrl.replace('w=400&h=400', 'w=800&h=800')}" data-name="${item.name}">
+            <img src="${imageUrl}" alt="${item.name}" class="product-image" loading="lazy" />
           </div>
-          <div class="product-price" style="margin-bottom:0;">$${PRICE.main}</div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(4px,1vw,6px);">
-          <div class="qty-control">
-            <button type="button" class="qty-btn" data-action="decrease" data-target="${item.name}" ${item.outOfStock ? 'disabled' : ''}>−</button>
-            <input 
-              type="number" 
-              min="0" 
-              max="99"
-              value="0" 
-              data-type="main" 
-              data-name="${item.name}" 
-              class="qty"
-              ${item.outOfStock ? 'disabled' : ''}
-            />
-            <button type="button" class="qty-btn" data-action="increase" data-target="${item.name}" ${item.outOfStock ? 'disabled' : ''}>+</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
+            <div style="display:flex; align-items:center; gap:clamp(4px,1vw,6px); flex:1;">
+              <div class="product-name" style="margin-bottom:0;">${item.name}</div>
+              <div class="product-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
+            </div>
+            <div class="product-price" style="margin-bottom:0;">$${PRICE.main}</div>
           </div>
-          <select data-cut="${item.name}" style="width:100%; font-size:clamp(11px,2.5vw,12px);" ${item.outOfStock ? 'disabled' : ''}>
-            <option>去骨</option>
-            <option>保留骨頭</option>
-          </select>
-        </div>
-      `;
-      mainsBox.appendChild(card);
-    });
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(4px,1vw,6px);">
+            <div class="qty-control">
+              <button type="button" class="qty-btn" data-action="decrease" data-target="${item.name}">−</button>
+              <input 
+                type="number" 
+                min="0" 
+                max="99"
+                value="0" 
+                data-type="main" 
+                data-name="${item.name}" 
+                class="qty"
+              />
+              <button type="button" class="qty-btn" data-action="increase" data-target="${item.name}">+</button>
+            </div>
+            <select data-cut="${item.name}" style="width:100%; font-size:clamp(11px,2.5vw,12px);">
+              <option>去骨</option>
+              <option>保留骨頭</option>
+            </select>
+          </div>
+        `;
+        mainsBox.appendChild(card);
+      });
+      
+      // 重新綁定數量輸入監聽
+      document.querySelectorAll('.qty').forEach(input => {
+        input.addEventListener('input', recalc);
+        input.addEventListener('input', function() {
+          this.setAttribute('value', this.value);
+        });
+      });
+    }
+    
+    // 初次載入使用預設主餐
+    generateMainItems(DEFAULT_MAIN_ITEMS);
 
     const sidesBox = document.querySelector('#sides');
     
@@ -1616,8 +1655,8 @@
         etaMinute.value = '';
         etaCombined.value = '';
         
-        // 重置數量輸入
-        qtyInputs.forEach(q => {
+        // 重置數量輸入（實時獲取，包含動態生成的主餐和配菜）
+        document.querySelectorAll('.qty').forEach(q => {
           q.value = 0;
           q.setAttribute('value', '0');
         });
