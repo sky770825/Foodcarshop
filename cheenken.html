@@ -1537,24 +1537,18 @@
     });
 
     // ====== 即時計算與預覽 ======
-    const qtyInputs = document.querySelectorAll('.qty');
     const previewEl = document.querySelector('#preview');
     const totalEl = document.querySelector('#totalAmt');
     const form = document.querySelector('#orderForm');
     const result = document.querySelector('#result');
 
-    qtyInputs.forEach(input => {
-      input.addEventListener('input', recalc);
-      // 更新 value 屬性以便 CSS :has() 選擇器生效
-      input.addEventListener('input', function() {
-        this.setAttribute('value', this.value);
-      });
-    });
-
     function recalc() {
       let items = [];
       let total = 0;
 
+      // 每次計算時重新獲取所有 .qty 元素（支援動態生成的商品）
+      const qtyInputs = document.querySelectorAll('.qty');
+      
       qtyInputs.forEach(q => {
         const n = parseInt(q.value || '0', 10);
         if (n > 0) {
