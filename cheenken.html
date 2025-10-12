@@ -983,8 +983,339 @@
       ]
     };
 
-    // Google Apps Script URL
+    // ============================================
+    // 🔐 授權設定（每個客戶不同）
+    // ============================================
+    const WEBSITE_ID = "WEB001"; // ⚠️ 每個客戶的網站ID不同，請勿修改
+    const AUTH_API = "https://script.google.com/macros/s/AKfycbyQ6GNnO8RRR-_IB25wG2zA3w4Ekqx1asgrvx3YN_25mVvSkNeLtmC9ZIPo-AMFMtxU/exec"; // 授權管理中心 API 網址
+    
+    // Google Apps Script URL（客戶的訂單系統）
     const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwrFyfD8_QPwY63V4HoJ7mKlMtyWFrn16R_qLeNHqh45UIyfnU-Gd0DUAuUIa0dvxCJ/exec";
+
+    // ====== 授權檢查 ======
+    async function checkAuthorization() {
+      try {
+        // 如果沒有設定授權 API，跳過檢查（開發模式）
+        if (!AUTH_API || AUTH_API === 'YOUR_AUTH_API_URL_HERE') {
+          console.log('⚠️ 未設定授權API，跳過授權檢查');
+          return { authorized: true };
+        }
+        
+        const res = await fetch(`${AUTH_API}?action=checkAuth&websiteId=${WEBSITE_ID}`);
+        const data = await res.json();
+        
+        if (!data.ok) {
+          console.error('授權檢查失敗:', data.msg);
+          return { authorized: false, msg: data.msg };
+        }
+        
+        return data;
+      } catch (err) {
+        console.error('授權檢查錯誤:', err);
+        // 網路錯誤時允許繼續使用（避免誤鎖）
+        return { authorized: true };
+      }
+    }
+    
+    // ====== 顯示授權失效頁面 ======
+    function showAuthExpiredPage(authData) {
+      document.body.innerHTML = `
+        <style>
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+          }
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+          .auth-container {
+            animation: fadeIn 0.5s ease-out;
+          }
+          .lock-icon {
+            animation: float 3s ease-in-out infinite;
+          }
+          .cta-button {
+            animation: pulse 2s ease-in-out infinite;
+          }
+        </style>
+        <div style="
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #fef9f3 0%, #faf5ed 100%);
+          padding: 20px;
+          position: relative;
+          overflow: hidden;
+        ">
+          <!-- 背景裝飾 -->
+          <div style="
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+          "></div>
+          <div style="
+            position: absolute;
+            bottom: -150px;
+            left: -150px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+          "></div>
+          
+          <!-- 主卡片 -->
+          <div class="auth-container" style="
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 32px 28px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.15);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+          ">
+            <!-- 鎖圖標 -->
+            <div class="lock-icon" style="
+              width: 70px;
+              height: 70px;
+              margin: 0 auto 16px;
+              background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 36px;
+              box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2);
+            ">🔒</div>
+            
+            <!-- 狀態標籤 -->
+            <div style="
+              display: inline-block;
+              background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+              color: white;
+              padding: 4px 12px;
+              border-radius: 16px;
+              font-size: 12px;
+              font-weight: 600;
+              margin-bottom: 12px;
+              box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            ">
+              ${authData.reason === 'expired' ? '📅 已到期' : '⛔ 已停用'}
+            </div>
+            
+            <!-- 標題 -->
+            <h1 style="
+              font-size: 22px;
+              font-weight: 800;
+              background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              margin-bottom: 8px;
+              line-height: 1.3;
+            ">授權已${authData.reason === 'expired' ? '到期' : '停用'}</h1>
+            
+            <!-- 商家資訊 -->
+            ${authData.businessName ? `
+              <p style="
+                font-size: 15px;
+                color: #4b5563;
+                font-weight: 600;
+                margin-bottom: 16px;
+              ">
+                🏪 ${authData.businessName}
+              </p>
+            ` : ''}
+            
+            <!-- 詳細資訊卡片 -->
+            <div style="
+              background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+              border-radius: 12px;
+              padding: 14px;
+              margin: 16px 0;
+              text-align: left;
+            ">
+              ${authData.plan ? `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  margin-bottom: 8px;
+                  padding-bottom: 8px;
+                  border-bottom: 1px solid #e5e7eb;
+                ">
+                  <span style="color: #9ca3af; font-size: 13px; min-width: 75px;">訂閱方案</span>
+                  <span style="color: #1f2937; font-weight: 600; font-size: 14px;">${authData.plan}</span>
+                </div>
+              ` : ''}
+              ${authData.expireDate ? `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                ">
+                  <span style="color: #9ca3af; font-size: 13px; min-width: 75px;">到期日期</span>
+                  <span style="color: #ef4444; font-weight: 600; font-size: 14px;">${authData.expireDate}</span>
+                </div>
+              ` : ''}
+            </div>
+            
+            <!-- 提示訊息 -->
+            <div style="
+              background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+              border: 2px solid #fbbf24;
+              border-radius: 12px;
+              padding: 16px;
+              margin: 16px 0;
+              box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+            ">
+              <p style="
+                font-size: 14px;
+                color: #92400e;
+                line-height: 1.6;
+                margin: 0;
+                font-weight: 500;
+              ">
+                ${authData.plan === '試用期' 
+                  ? '🎁 試用期已結束，感謝您的試用！<br/>如需繼續使用，請聯繫客服選擇付費方案。' 
+                  : `💡 您的訂閱已${authData.reason === 'expired' ? '到期' : '停用'}，<br/>請聯繫客服進行續費。`
+                }
+              </p>
+            </div>
+            
+            <!-- CTA 按鈕 -->
+            <a 
+              href="https://lin.ee/YyXagFg" 
+              target="_blank"
+              class="cta-button"
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+                color: white;
+                padding: 13px 32px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: 700;
+                font-size: 15px;
+                box-shadow: 0 6px 20px rgba(217,119,6,.4);
+                transition: all .3s ease;
+                margin-top: 4px;
+              "
+              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(217,119,6,.5)'"
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(217,119,6,.4)'"
+            >
+              ${authData.plan === '試用期' ? '💳 選擇付費方案' : '📞 聯繫客服續費'}
+            </a>
+            
+            <!-- 次要按鈕 -->
+            <div style="margin-top: 12px;">
+              <a 
+                href="javascript:location.reload()" 
+                style="
+                  display: inline-block;
+                  color: #6b7280;
+                  font-size: 13px;
+                  text-decoration: none;
+                  padding: 6px 14px;
+                  border-radius: 6px;
+                  transition: all .2s ease;
+                "
+                onmouseover="this.style.color='#d97706'; this.style.background='#fef3c7'"
+                onmouseout="this.style.color='#6b7280'; this.style.background='transparent'"
+              >
+                🔄 重新整理
+              </a>
+            </div>
+            
+            <!-- 底部資訊 -->
+            <div style="
+              margin-top: 20px;
+              padding-top: 16px;
+              border-top: 1px solid #e5e7eb;
+            ">
+              <p style="
+                font-size: 11px;
+                color: #9ca3af;
+                margin: 0;
+              ">
+                網站ID: <code style="
+                  background: #f3f4f6;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  color: #6b7280;
+                  font-family: monospace;
+                  font-size: 10px;
+                ">${WEBSITE_ID}</code>
+              </p>
+              <p style="
+                font-size: 10px;
+                color: #d1d5db;
+                margin: 6px 0 0;
+              ">
+                © 2025 快閃餐車小幫手 · 授權管理系統
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // ====== 顯示即將到期警告 ======
+    function showExpiryWarning(daysLeft, expireDate, authData) {
+      const isTrial = authData.isTrial || false;
+      const plan = authData.plan || '';
+      
+      const warningBanner = document.createElement('div');
+      
+      // 試用期和付費方案使用不同顏色
+      const bgColor = isTrial 
+        ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
+        : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+      const textColor = isTrial ? '#fff' : '#78350f';
+      
+      warningBanner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: ${bgColor};
+        color: ${textColor};
+        padding: 12px 20px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+      `;
+      
+      // 根據訂閱方案顯示不同訊息
+      let message = '';
+      if (isTrial) {
+        message = `🎁 試用期即將結束（剩餘 ${daysLeft} 天，${expireDate}），請聯繫客服選擇付費方案`;
+      } else {
+        message = `⚠️ ${plan} 即將到期（剩餘 ${daysLeft} 天，${expireDate}），請盡快續費以免影響使用`;
+      }
+      
+      warningBanner.innerHTML = message;
+      document.body.insertBefore(warningBanner, document.body.firstChild);
+      
+      // 調整 header 位置避免被遮擋
+      const header = document.querySelector('.brand-header');
+      if (header) {
+        header.style.marginTop = '44px';
+      }
+    }
 
     // ====== 載入庫存狀態 ======
     async function loadInventory(venue) {
@@ -1605,6 +1936,25 @@
       }, 400);
       
       try {
+        // 🔐 第一步：檢查授權
+        const authResult = await checkAuthorization();
+        
+        if (!authResult.authorized) {
+          // 授權失效，顯示到期頁面
+          clearInterval(countdownInterval);
+          clearInterval(dotsInterval);
+          loadingOverlay.classList.add('hidden');
+          setTimeout(() => {
+            showAuthExpiredPage(authResult);
+          }, 300);
+          return; // 停止載入
+        }
+        
+        // 如果授權即將到期，顯示警告
+        if (authResult.showWarning && authResult.daysLeft) {
+          showExpiryWarning(authResult.daysLeft, authResult.expireDate, authResult);
+        }
+        
         // 並行載入系統設定和庫存（更快）
         await Promise.all([
           loadConfig(),
