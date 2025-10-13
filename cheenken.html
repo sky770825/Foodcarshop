@@ -768,11 +768,32 @@
           <select required name="venue" id="venueSelect" style="border-color:var(--primary); font-weight:600; font-size:clamp(15px,3.5vw,16px);">
             <option value="">請選擇取餐場地...</option>
           </select>
-          <!-- 當前場地顯示 -->
-          <div id="currentVenueDisplay" style="display:none; margin-top:8px; padding:10px 14px; background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border:1.5px solid #fbbf24; border-radius:8px; font-size:clamp(13px,3vw,14px); font-weight:600; color:#92400e; text-align:center;">
-            <span style="display:inline-block; margin-right:6px;">🎯</span>
-            <span>當前場地：</span>
-            <span id="currentVenueName" style="color:#b45309;"></span>
+          <!-- 當前場地顯示 + 刷新按鈕 -->
+          <div id="currentVenueDisplay" style="display:none; margin-top:8px; padding:10px 14px; background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border:1.5px solid #fbbf24; border-radius:8px; font-size:clamp(13px,3vw,14px); font-weight:600; color:#92400e;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div>
+                <span style="display:inline-block; margin-right:6px;">🎯</span>
+                <span>當前場地：</span>
+                <span id="currentVenueName" style="color:#b45309;"></span>
+              </div>
+              <button 
+                type="button" 
+                id="refreshVenueBtn"
+                style="
+                  padding:4px 10px; 
+                  background:#fff; 
+                  border:1.5px solid #fbbf24; 
+                  border-radius:6px; 
+                  font-size:clamp(11px,2.5vw,12px); 
+                  color:#92400e; 
+                  cursor:pointer; 
+                  transition:all .2s ease;
+                  font-weight:600;
+                "
+                onclick="this.style.background='#fef3c7'"
+                onmouseout="this.style.background='#fff'"
+              >🔄 刷新</button>
+            </div>
           </div>
         </div>
         
@@ -856,10 +877,10 @@
             </div>
 
           <div class="form-group" style="margin-bottom:0">
-            <label class="form-label">🧅 蔥泥</label>
+            <label class="form-label">🧅 蒜泥</label>
             <select name="scallion">
-              <option value="加蔥泥" selected>加蔥泥</option>
-              <option value="不加蔥泥">不加蔥泥</option>
+              <option value="加蒜泥" selected>加蒜泥</option>
+              <option value="不加蒜泥">不加蒜泥</option>
             </select>
           </div>
         </div>
@@ -940,6 +961,9 @@
     
     // 當前選擇的場地（記住用戶選擇）
     let CURRENT_VENUE = null;
+    
+    // 🚀 場地資料快取（避免重複載入）
+    const VENUE_CACHE = {};
     
     // 降級方案：如果後端無法載入，使用預設配菜列表
     const DEFAULT_SIDE_ITEMS = {
@@ -1438,7 +1462,50 @@
           // 記住當前選擇的場地
           CURRENT_VENUE = selectedVenue;
           
-          // 顯示載入提示
+          // 🚀 檢查快取：如果已經載入過這個場地，直接使用快取
+          if (VENUE_CACHE[selectedVenue]) {
+            console.log('⚡ 使用快取資料（秒速載入）');
+            const cachedData = VENUE_CACHE[selectedVenue];
+            
+            // 使用快取的資料
+            INVENTORY = cachedData.inventory;
+            SIDE_CATEGORIES = cachedData.categories || {};
+            MAIN_ITEMS = cachedData.mainItems || MAIN_ITEMS;
+            
+            // 快速更新介面（無需重新 fetch）
+            if (cachedData.mainItems && cachedData.mainItems.length > 0) {
+              generateMainItems(cachedData.mainItems);
+            }
+            if (Object.keys(SIDE_CATEGORIES).length > 0) {
+              regenerateSideItems();
+            }
+            updateStockStatus();
+            
+            // 更新當前場地顯示
+            const currentVenueDisplay = document.getElementById('currentVenueDisplay');
+            const currentVenueName = document.getElementById('currentVenueName');
+            if (currentVenueDisplay && currentVenueName) {
+              const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+              const venueName = selectedOption.textContent.replace('📍 ', '').trim();
+              currentVenueName.textContent = venueName;
+              currentVenueDisplay.style.display = 'block';
+            }
+            
+            // 顯示快速提示
+            const quickMsg = document.createElement('div');
+            quickMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600;';
+            quickMsg.textContent = '⚡ 場地已切換';
+            document.body.appendChild(quickMsg);
+            setTimeout(() => {
+              if (document.body.contains(quickMsg)) {
+                document.body.removeChild(quickMsg);
+              }
+            }, 1500);
+            
+            return; // 直接返回，不需要 fetch
+          }
+          
+          // 如果沒有快取，顯示載入提示
           const loadingMsg = document.createElement('div');
           loadingMsg.id = 'venueLoadingMsg';
           loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:#fff; padding:20px 40px; border-radius:10px; z-index:9999; font-size:16px; font-weight:600;';
@@ -1446,7 +1513,7 @@
           document.body.appendChild(loadingMsg);
           
           try {
-            // 重新載入該場地的庫存
+            // 從服務器載入該場地的庫存
             const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}`);
             const data = await res.json();
             
@@ -1471,6 +1538,15 @@
               
               // 更新商品卡片的缺貨狀態
               updateStockStatus();
+              
+              // 🚀 儲存到快取（下次切換就會秒開）
+              VENUE_CACHE[selectedVenue] = {
+                inventory: data.inventory,
+                categories: data.categories,
+                mainItems: data.mainItems,
+                timestamp: Date.now()
+              };
+              console.log(`💾 場地資料已快取：${selectedVenue}`);
               
               // 移除載入提示
               document.body.removeChild(loadingMsg);
@@ -2088,7 +2164,7 @@
         辣度: form.spicy.value,
         鹹度: form.saltiness.value,
         檸檬: form.lemon.value,
-        蔥泥: form.scallion.value
+        蒜泥: form.scallion.value
       };
 
       // 收集去骨選項
