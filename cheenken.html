@@ -964,6 +964,31 @@
     
     // 🚀 場地資料快取（避免重複載入）
     const VENUE_CACHE = {};
+    const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 快取有效期：5分鐘
+    
+    // 🚀 檢查快取是否過期
+    function isCacheValid(cacheData) {
+      if (!cacheData || !cacheData.timestamp) return false;
+      const now = Date.now();
+      return (now - cacheData.timestamp) < CACHE_EXPIRY_TIME;
+    }
+    
+    // 🚀 工具函数：防抖（避免频繁计算）
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+    
+    // 🚀 計算函數（稍後定義完整邏輯）
+    let recalc = () => {};
+    let debouncedRecalc = () => {};
     
     // 降級方案：如果後端無法載入，使用預設配菜列表
     const DEFAULT_SIDE_ITEMS = {
@@ -1462,8 +1487,8 @@
           // 記住當前選擇的場地
           CURRENT_VENUE = selectedVenue;
           
-          // 🚀 檢查快取：如果已經載入過這個場地，直接使用快取
-          if (VENUE_CACHE[selectedVenue]) {
+          // 🚀 檢查快取：如果已經載入過這個場地且未過期，直接使用快取
+          if (VENUE_CACHE[selectedVenue] && isCacheValid(VENUE_CACHE[selectedVenue])) {
             console.log('⚡ 使用快取資料（秒速載入）');
             const cachedData = VENUE_CACHE[selectedVenue];
             
@@ -1513,6 +1538,13 @@
           document.body.appendChild(loadingMsg);
           
           try {
+            // 🚀 檢查網路狀態
+            if (!navigator.onLine) {
+              document.body.removeChild(loadingMsg);
+              alert('⚠️ 網路已斷線，無法載入場地資料');
+              return;
+            }
+            
             // 從服務器載入該場地的庫存
             const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}`);
             const data = await res.json();
@@ -1790,9 +1822,9 @@
         mainsBox.appendChild(card);
       });
       
-      // 重新綁定數量輸入監聽
+      // 🚀 重新綁定數量輸入監聽（使用防抖優化）
       document.querySelectorAll('.qty').forEach(input => {
-        input.addEventListener('input', recalc);
+        input.addEventListener('input', debouncedRecalc);
         input.addEventListener('input', function() {
           this.setAttribute('value', this.value);
         });
@@ -1868,9 +1900,9 @@
         });
       });
       
-      // 重新綁定數量輸入監聽
+      // 🚀 重新綁定數量輸入監聽（使用防抖優化）
       document.querySelectorAll('.qty').forEach(input => {
-        input.addEventListener('input', recalc);
+        input.addEventListener('input', debouncedRecalc);
         input.addEventListener('input', function() {
           this.setAttribute('value', this.value);
         });
@@ -1974,7 +2006,8 @@
     const form = document.querySelector('#orderForm');
     const result = document.querySelector('#result');
 
-    function recalc() {
+    // 定義實際的 recalc 函數
+    recalc = function() {
       let items = [];
       let total = 0;
 
@@ -2005,9 +2038,38 @@
 
       totalEl.textContent = `$${total}`;
       return {items, total};
-    }
+    };
+
+    // 🚀 創建防抖版本（輸入時延迟150ms執行，避免頻繁計算）
+    debouncedRecalc = debounce(recalc, 150);
 
     recalc();
+
+    // 🚀 離線/在線檢測
+    let isOnline = navigator.onLine;
+    
+    window.addEventListener('online', () => {
+      isOnline = true;
+      const onlineMsg = document.createElement('div');
+      onlineMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600;';
+      onlineMsg.textContent = '✅ 網路已連線';
+      document.body.appendChild(onlineMsg);
+      setTimeout(() => {
+        if (document.body.contains(onlineMsg)) {
+          document.body.removeChild(onlineMsg);
+        }
+      }, 3000);
+      console.log('✅ 網路已連線');
+    });
+    
+    window.addEventListener('offline', () => {
+      isOnline = false;
+      const offlineMsg = document.createElement('div');
+      offlineMsg.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#dc2626; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600; box-shadow:0 4px 12px rgba(220,38,38,0.3);';
+      offlineMsg.textContent = '⚠️ 網路已斷線，部分功能可能無法使用';
+      document.body.appendChild(offlineMsg);
+      console.warn('⚠️ 網路已斷線');
+    });
 
     // ====== 頁面載入時初始化 ======
     window.addEventListener('DOMContentLoaded', async () => {
@@ -2232,6 +2294,12 @@
       
       if (items.length === 0) {
         result.innerHTML = '<div class="message error">⚠️ 請至少選擇 1 項商品</div>';
+        return;
+      }
+      
+      // 🚀 檢查網路狀態
+      if (!navigator.onLine) {
+        result.innerHTML = '<div class="message error">⚠️ 網路已斷線，無法送出訂單。請檢查網路連線後重試。</div>';
         return;
       }
 
