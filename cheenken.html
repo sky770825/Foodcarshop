@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  
+  <!-- 🚀 性能優化：預連接到 API -->
+  <link rel="preconnect" href="https://script.google.com" />
+  <link rel="dns-prefetch" href="https://script.google.com" />
+  <link rel="preconnect" href="https://images.unsplash.com" />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
+  
   <title>極品鹽水雞｜線上預訂</title>
   <style>
     :root{
@@ -721,8 +728,8 @@
     <div class="loading-content">
       <div class="loading-icon">🍗</div>
       <div class="loading-text">載入中<span id="loadingDots">...</span></div>
-      <div class="loading-subtext">
-        <span id="loadingCountdown">3</span> 秒後完成
+      <div class="loading-subtext" id="loadingStatus">
+        正在準備系統
       </div>
     </div>
   </div>
@@ -2097,20 +2104,15 @@
       }
       
       const loadingOverlay = document.getElementById('loadingOverlay');
-      const countdownEl = document.getElementById('loadingCountdown');
+      const loadingStatus = document.getElementById('loadingStatus');
       const dotsEl = document.getElementById('loadingDots');
       
-      // 倒數計時器
-      let countdown = 3;
-      let countdownInterval = setInterval(() => {
-        countdown--;
-        if (countdownEl) {
-          countdownEl.textContent = countdown;
+      // 🚀 動態載入狀態提示（移除假的倒數計時）
+      function updateLoadingStatus(message) {
+        if (loadingStatus) {
+          loadingStatus.textContent = message;
         }
-        if (countdown <= 0) {
-          clearInterval(countdownInterval);
-        }
-      }, 1000);
+      }
       
       // 點點點動畫
       let dots = 0;
@@ -2122,46 +2124,44 @@
       }, 400);
       
       try {
-        // 🔐 第一步：檢查授權
-        const authResult = await checkAuthorization();
+        // 🚀 最速優化：所有請求並行執行（不互相等待）
+        updateLoadingStatus('載入中...');
         
-        if (!authResult.authorized) {
+        const [authResult, configResult, inventoryResult] = await Promise.allSettled([
+          checkAuthorization(),
+          loadConfig(),
+          loadInventory()
+        ]);
+        
+        // 檢查授權結果
+        if (authResult.status === 'fulfilled' && !authResult.value.authorized) {
           // 授權失效，顯示到期頁面
-          clearInterval(countdownInterval);
           clearInterval(dotsInterval);
           loadingOverlay.classList.add('hidden');
           setTimeout(() => {
-            showAuthExpiredPage(authResult);
+            showAuthExpiredPage(authResult.value);
           }, 300);
           return; // 停止載入
         }
         
         // 如果授權即將到期，顯示警告
-        if (authResult.showWarning && authResult.daysLeft) {
-          showExpiryWarning(authResult.daysLeft, authResult.expireDate, authResult);
+        if (authResult.status === 'fulfilled' && authResult.value.showWarning && authResult.value.daysLeft) {
+          showExpiryWarning(authResult.value.daysLeft, authResult.value.expireDate, authResult.value);
         }
         
-        // 並行載入系統設定和庫存（更快）
-        await Promise.all([
-          loadConfig(),
-          loadInventory()
-        ]);
-        
+        updateLoadingStatus('完成！');
         console.log('✅ 系統初始化完成');
       } catch (err) {
         console.warn('初始化時發生錯誤:', err);
+        updateLoadingStatus('載入完成');
       } finally {
-        // 停止計時器
-        clearInterval(countdownInterval);
+        // 停止動畫
         clearInterval(dotsInterval);
         
-        // 隱藏載入提示（延遲 300ms 讓動畫更流暢）
+        // 🚀 立即隱藏載入提示（移除多餘延遲）
+        loadingOverlay.classList.add('hidden');
         setTimeout(() => {
-          loadingOverlay.classList.add('hidden');
-          // 500ms 後完全移除
-          setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-          }, 500);
+          loadingOverlay.style.display = 'none';
         }, 300);
       }
       
