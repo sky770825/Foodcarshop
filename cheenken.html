@@ -728,8 +728,8 @@
     <div class="loading-content">
       <div class="loading-icon">🍗</div>
       <div class="loading-text">載入中<span id="loadingDots">...</span></div>
-      <div class="loading-subtext" id="loadingStatus">
-        正在準備系統
+      <div class="loading-subtext">
+        <span id="loadingCountdown">3</span> 秒後完成
       </div>
     </div>
   </div>
@@ -1449,6 +1449,36 @@
       }
     }
     
+    // 🚀 預載入所有場地資料（讓切換秒開）
+    async function preloadAllVenues(venues) {
+      console.log('🚀 開始預載入所有場地資料...');
+      const activeVenues = venues.filter(v => v.status !== '暫停');
+      
+      // 並行載入所有場地的資料
+      const preloadPromises = activeVenues.map(async (venue) => {
+        try {
+          const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${venue.code}`);
+          const data = await res.json();
+          
+          if (data.ok) {
+            // 儲存到快取
+            VENUE_CACHE[venue.code] = {
+              inventory: data.inventory,
+              categories: data.categories,
+              mainItems: data.mainItems,
+              timestamp: Date.now()
+            };
+            console.log(`✅ 預載入完成：${venue.name}`);
+          }
+        } catch (err) {
+          console.warn(`⚠️ 預載入失敗：${venue.name}`, err);
+        }
+      });
+      
+      await Promise.allSettled(preloadPromises);
+      console.log('🎉 所有場地預載入完成！');
+    }
+    
     // 更新場地選項
     function updateVenueOptions(venues) {
       const venueSelect = document.getElementById('venueSelect');
@@ -1472,6 +1502,11 @@
         
         venueSelect.appendChild(option);
       });
+      
+      // 🚀 預載入所有場地資料（背景執行，不阻塞 UI）
+      setTimeout(() => {
+        preloadAllVenues(venues);
+      }, 500); // 延遲 500ms，讓頁面先完成載入
       
       // 監聽場地選擇變更事件
       venueSelect.addEventListener('change', async function() {
@@ -1797,7 +1832,13 @@
         
         card.innerHTML = `
           <div class="product-image-wrap" data-image="${imageUrl.replace('w=400&h=400', 'w=800&h=800')}" data-name="${item.name}">
-            <img src="${imageUrl}" alt="${item.name}" class="product-image" loading="lazy" />
+            <img 
+              src="${imageUrl}" 
+              alt="${item.name}" 
+              class="product-image" 
+              loading="lazy"
+              onerror="this.src='https://via.placeholder.com/400x400/fef3c7/b45309?text=${encodeURIComponent(item.name)}'"
+            />
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
             <div style="display:flex; align-items:center; gap:clamp(4px,1vw,6px); flex:1;">
@@ -1829,13 +1870,8 @@
         mainsBox.appendChild(card);
       });
       
-      // 🚀 重新綁定數量輸入監聽（使用防抖優化）
-      document.querySelectorAll('.qty').forEach(input => {
-        input.addEventListener('input', debouncedRecalc);
-        input.addEventListener('input', function() {
-          this.setAttribute('value', this.value);
-        });
-      });
+      // 🚀 不需要重新綁定事件（使用事件委託統一處理）
+      // 事件委託已在下方設置，避免重複綁定造成記憶體洩漏
     }
     
     // 初次載入使用預設主餐
@@ -1907,13 +1943,8 @@
         });
       });
       
-      // 🚀 重新綁定數量輸入監聽（使用防抖優化）
-      document.querySelectorAll('.qty').forEach(input => {
-        input.addEventListener('input', debouncedRecalc);
-        input.addEventListener('input', function() {
-          this.setAttribute('value', this.value);
-        });
-      });
+      // 🚀 不需要重新綁定事件（使用事件委託統一處理）
+      // 事件委託已在下方設置，避免重複綁定造成記憶體洩漏
     }
     
     // 初次載入使用預設配菜
@@ -1981,6 +2012,15 @@
     etaHour.addEventListener('change', updateEta);
     etaMinute.addEventListener('change', updateEta);
 
+    // ====== 🚀 統一事件委託（所有輸入框） ======
+    // 監聽所有數量輸入變化（使用事件委託，避免重複綁定）
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('qty')) {
+        e.target.setAttribute('value', e.target.value);
+        debouncedRecalc(); // 使用防抖版本
+      }
+    });
+    
     // ====== 數量增減按鈕事件 ======
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.qty-btn');
@@ -2003,7 +2043,7 @@
       input.value = currentValue;
       input.setAttribute('value', currentValue);
       
-      // 觸發計算
+      // 按鈕點擊立即計算（不使用防抖）
       recalc();
     });
 
@@ -2104,15 +2144,20 @@
       }
       
       const loadingOverlay = document.getElementById('loadingOverlay');
-      const loadingStatus = document.getElementById('loadingStatus');
+      const countdownEl = document.getElementById('loadingCountdown');
       const dotsEl = document.getElementById('loadingDots');
       
-      // 🚀 動態載入狀態提示（移除假的倒數計時）
-      function updateLoadingStatus(message) {
-        if (loadingStatus) {
-          loadingStatus.textContent = message;
+      // 倒數計時器（視覺效果）
+      let countdown = 3;
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdownEl) {
+          countdownEl.textContent = countdown;
         }
-      }
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
       
       // 點點點動畫
       let dots = 0;
@@ -2125,7 +2170,7 @@
       
       try {
         // 🚀 最速優化：所有請求並行執行（不互相等待）
-        updateLoadingStatus('載入中...');
+        const startTime = Date.now();
         
         const [authResult, configResult, inventoryResult] = await Promise.allSettled([
           checkAuthorization(),
@@ -2136,6 +2181,7 @@
         // 檢查授權結果
         if (authResult.status === 'fulfilled' && !authResult.value.authorized) {
           // 授權失效，顯示到期頁面
+          clearInterval(countdownInterval);
           clearInterval(dotsInterval);
           loadingOverlay.classList.add('hidden');
           setTimeout(() => {
@@ -2149,16 +2195,23 @@
           showExpiryWarning(authResult.value.daysLeft, authResult.value.expireDate, authResult.value);
         }
         
-        updateLoadingStatus('完成！');
+        // 🚀 確保至少顯示倒數動畫（視覺效果）
+        const elapsedTime = Date.now() - startTime;
+        const minDisplayTime = 2500; // 至少顯示 2.5 秒
+        
+        if (elapsedTime < minDisplayTime) {
+          await new Promise(resolve => setTimeout(resolve, minDisplayTime - elapsedTime));
+        }
+        
         console.log('✅ 系統初始化完成');
       } catch (err) {
         console.warn('初始化時發生錯誤:', err);
-        updateLoadingStatus('載入完成');
       } finally {
         // 停止動畫
+        clearInterval(countdownInterval);
         clearInterval(dotsInterval);
         
-        // 🚀 立即隱藏載入提示（移除多餘延遲）
+        // 隱藏載入提示
         loadingOverlay.classList.add('hidden');
         setTimeout(() => {
           loadingOverlay.style.display = 'none';
@@ -2269,9 +2322,19 @@
       }
     });
 
+    // 🚀 防止重複提交的標誌
+    let isSubmitting = false;
+    
     // ====== 表單送出 ======
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      // 🚀 防止重複提交
+      if (isSubmitting) {
+        console.log('⏸️ 訂單提交中，請勿重複點擊');
+        return;
+      }
+      
       const {items, total} = recalc();
       
       // 驗證場地（如果有場地選單）
@@ -2283,6 +2346,22 @@
         setTimeout(() => {
           venueSelect.style.borderColor = '';
         }, 2000);
+        return;
+      }
+      
+      // 🚀 驗證姓名格式
+      const nameValue = form.name.value.trim();
+      if (!nameValue || nameValue.length < 2) {
+        result.innerHTML = '<div class="message error">⚠️ 請輸入有效的姓名（至少 2 個字）</div>';
+        form.name.focus();
+        return;
+      }
+      
+      // 🚀 驗證電話格式
+      const phoneValue = form.phone.value.trim();
+      if (!phoneValue || phoneValue.length < 3) {
+        result.innerHTML = '<div class="message error">⚠️ 請輸入有效的電話號碼</div>';
+        form.phone.focus();
         return;
       }
       
@@ -2380,6 +2459,15 @@ ${tasteText}
       };
 
       try {
+        // 🚀 設置提交中狀態，禁用送出按鈕
+        isSubmitting = true;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.5';
+          submitBtn.style.cursor = 'not-allowed';
+        }
+        
         result.innerHTML = '<div class="message">⏳ 送出中，請稍候...</div>';
         
         // 使用 FormData 格式（Google Apps Script 更相容）
@@ -2479,6 +2567,15 @@ ${tasteText}
       } catch (err) {
         console.error('詳細錯誤:', err);
         result.innerHTML = `<div class="message error">❌ 連線失敗：${err.message}<br/><small>請檢查網路或聯繫管理員</small></div>`;
+      } finally {
+        // 🚀 重置提交狀態，恢復送出按鈕
+        isSubmitting = false;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          submitBtn.style.cursor = 'pointer';
+        }
       }
     });
   </script>
