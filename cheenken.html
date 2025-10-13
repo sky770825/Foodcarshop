@@ -1379,7 +1379,7 @@
           }
           
           // 更新商品卡片的缺貨狀態
-          updateStockStatus();
+          updateStockStatus(true); // 強制更新（頁面初始化載入）
         }
       } catch (err) {
         console.warn('⚠️ 無法載入庫存，使用預設設定:', err);
@@ -1479,7 +1479,7 @@
             if (Object.keys(SIDE_CATEGORIES).length > 0) {
               regenerateSideItems();
             }
-            updateStockStatus();
+            updateStockStatus(true); // 強制更新（不管用戶是否正在操作）
             
             // 更新當前場地顯示
             const currentVenueDisplay = document.getElementById('currentVenueDisplay');
@@ -1537,7 +1537,7 @@
               }
               
               // 更新商品卡片的缺貨狀態
-              updateStockStatus();
+              updateStockStatus(true); // 強制更新（首次載入）
               
               // 🚀 儲存到快取（下次切換就會秒開）
               VENUE_CACHE[selectedVenue] = {
@@ -1639,14 +1639,14 @@
     }
 
     // ====== 更新商品的缺貨狀態和庫存顯示 ======
-    function updateStockStatus() {
+    function updateStockStatus(forceUpdate = false) {
       // 🔧 iOS 修復：保存當前焦點元素和滾動位置
       const activeElement = document.activeElement;
       const scrollY = window.scrollY;
       const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT' || activeElement.tagName === 'TEXTAREA');
       
-      // 如果用户正在输入，跳过本次更新（避免打断）
-      if (isInputFocused) {
+      // 如果用户正在输入，跳过本次更新（除非强制更新）
+      if (isInputFocused && !forceUpdate) {
         console.log('⏭️ 用户正在输入，跳过本次库存更新');
         return;
       }
@@ -1883,8 +1883,7 @@
     // 重新生成配菜列表（當從後端載入新數據時）
     function regenerateSideItems() {
       generateSideItems(SIDE_CATEGORIES);
-      // 重新更新庫存狀態
-      updateStockStatus();
+      // 注意：庫存狀態由外部調用 updateStockStatus(true) 來更新
     }
 
     // ====== 圖片點擊放大功能 ======
@@ -2112,6 +2111,83 @@
       console.log('✅ 庫存載入完成，不會自動刷新（避免干擾用戶操作）');
     });
 
+    // ====== 刷新場地庫存按鈕 ======
+    document.addEventListener('click', async (e) => {
+      if (e.target.id === 'refreshVenueBtn') {
+        e.preventDefault();
+        
+        if (!CURRENT_VENUE) {
+          alert('⚠️ 請先選擇取餐場地');
+          return;
+        }
+        
+        // 清除該場地的快取
+        delete VENUE_CACHE[CURRENT_VENUE];
+        console.log(`🗑️ 已清除場地快取：${CURRENT_VENUE}`);
+        
+        // 顯示載入提示
+        const loadingMsg = document.createElement('div');
+        loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:#fff; padding:20px 40px; border-radius:10px; z-index:9999; font-size:16px; font-weight:600;';
+        loadingMsg.textContent = '🔄 刷新庫存中...';
+        document.body.appendChild(loadingMsg);
+        
+        try {
+          // 重新從服務器載入
+          const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${CURRENT_VENUE}&_t=${Date.now()}`);
+          const data = await res.json();
+          
+          if (data.ok) {
+            INVENTORY = data.inventory;
+            SIDE_CATEGORIES = data.categories || {};
+            
+            // 更新主餐列表
+            if (data.mainItems && data.mainItems.length > 0) {
+              MAIN_ITEMS = data.mainItems;
+              generateMainItems(MAIN_ITEMS);
+            }
+            
+            // 更新配菜列表
+            if (Object.keys(SIDE_CATEGORIES).length > 0) {
+              regenerateSideItems();
+            }
+            
+            // 更新庫存狀態
+            updateStockStatus(true); // 強制更新（手動刷新）
+            
+            // 重新儲存到快取
+            VENUE_CACHE[CURRENT_VENUE] = {
+              inventory: data.inventory,
+              categories: data.categories,
+              mainItems: data.mainItems,
+              timestamp: Date.now()
+            };
+            
+            document.body.removeChild(loadingMsg);
+            
+            // 顯示成功提示
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600;';
+            successMsg.textContent = '✅ 庫存已更新';
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+              if (document.body.contains(successMsg)) {
+                document.body.removeChild(successMsg);
+              }
+            }, 2000);
+            
+          } else {
+            document.body.removeChild(loadingMsg);
+            alert('❌ 刷新失敗：' + data.msg);
+          }
+        } catch (err) {
+          document.body.removeChild(loadingMsg);
+          console.error('刷新庫存錯誤:', err);
+          alert('❌ 刷新失敗，請重試');
+        }
+      }
+    });
+    
     // ====== 清空按鈕 ======
     document.querySelector('#resetBtn').addEventListener('click', () => {
       if (confirm('確定要清空所有選項嗎？')) {
