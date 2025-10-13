@@ -2028,30 +2028,12 @@
         }, 300);
       }
       
-      // 🔧 iOS 修復：延長自動刷新時間至 60 秒（減少干擾）
-      setInterval(() => {
-        // 檢查用戶是否正在操作
-        const activeElement = document.activeElement;
-        const isUserInteracting = activeElement && (
-          activeElement.tagName === 'INPUT' || 
-          activeElement.tagName === 'SELECT' || 
-          activeElement.tagName === 'TEXTAREA' ||
-          activeElement.tagName === 'BUTTON'
-        );
-        
-        // 如果用戶正在操作，延後刷新
-        if (isUserInteracting) {
-          console.log('⏸️ 用户正在操作，延後库存刷新');
-          return;
-        }
-        
-        if (CURRENT_VENUE) {
-          console.log(`🔄 自動刷新場地 ${CURRENT_VENUE} 的庫存...`, new Date().toLocaleTimeString());
-        } else {
-          console.log('🔄 自動刷新預設庫存...', new Date().toLocaleTimeString());
-        }
-        loadInventory(); // 會自動使用 CURRENT_VENUE
-      }, 60000); // 改為 60 秒（原本 30 秒）
+      // ✅ 已移除自動刷新功能
+      // 原因：頁面載入時已是最新數據，自動刷新會造成 iOS 弹回問題且無實際需求
+      // 只在以下情況會更新庫存：
+      // 1. 頁面首次載入
+      // 2. 用戶切換取餐場地
+      console.log('✅ 庫存載入完成，不會自動刷新（避免干擾用戶操作）');
     });
 
     // ====== 清空按鈕 ======
