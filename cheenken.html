@@ -2,7 +2,9 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>極品鹽水雞｜線上預訂</title>
   <style>
     :root{
@@ -1562,6 +1564,17 @@
 
     // ====== 更新商品的缺貨狀態和庫存顯示 ======
     function updateStockStatus() {
+      // 🔧 iOS 修復：保存當前焦點元素和滾動位置
+      const activeElement = document.activeElement;
+      const scrollY = window.scrollY;
+      const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT' || activeElement.tagName === 'TEXTAREA');
+      
+      // 如果用户正在输入，跳过本次更新（避免打断）
+      if (isInputFocused) {
+        console.log('⏭️ 用户正在输入，跳过本次库存更新');
+        return;
+      }
+      
       // 更新主餐的缺貨狀態和庫存
       document.querySelectorAll('#mains .product-card').forEach(card => {
         const input = card.querySelector('input.qty');
@@ -1571,12 +1584,16 @@
         if (itemName && INVENTORY[itemName]) {
           const stock = INVENTORY[itemName];
           
-          // 更新庫存顯示
+          // 🔧 只更新文本内容，不重建 DOM（避免失焦）
           if (stockEl) {
             const current = stock.stock || 0;
             const initial = stock.initialStock || 0;
             const stockColor = current === 0 ? 'var(--danger)' : (current <= initial * 0.3 ? 'var(--accent)' : 'var(--success)');
-            stockEl.innerHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
+            const newHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
+            // 只在内容真的改变时才更新
+            if (stockEl.innerHTML !== newHTML) {
+              stockEl.innerHTML = newHTML;
+            }
           }
           
           if (!stock.available || stock.stock <= 0) {
@@ -1616,12 +1633,16 @@
         if (itemName && INVENTORY[itemName]) {
           const stock = INVENTORY[itemName];
           
-          // 更新庫存顯示
+          // 🔧 只更新文本内容，不重建 DOM（避免失焦）
           if (stockEl) {
             const current = stock.stock || 0;
             const initial = stock.initialStock || 0;
             const stockColor = current === 0 ? 'var(--danger)' : (current <= initial * 0.3 ? 'var(--accent)' : 'var(--success)');
-            stockEl.innerHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
+            const newHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
+            // 只在内容真的改变时才更新
+            if (stockEl.innerHTML !== newHTML) {
+              stockEl.innerHTML = newHTML;
+            }
           }
           
           if (!stock.available || stock.stock <= 0) {
@@ -1637,6 +1658,11 @@
           }
         }
       });
+      
+      // 🔧 iOS 修復：恢復滾動位置（防止页面弹回）
+      if (window.scrollY !== scrollY) {
+        window.scrollTo(0, scrollY);
+      }
     }
 
     // ====== 產生主餐卡片（動態生成） ======
@@ -1910,6 +1936,29 @@
 
     // ====== 頁面載入時初始化 ======
     window.addEventListener('DOMContentLoaded', async () => {
+      // 🔧 iOS 修復：阻止自動滾動和焦點跳動
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        console.log('🍎 偵測到 iOS 裝置，啟用穩定性優化');
+        
+        // 防止 iOS Safari 自動縮放
+        document.addEventListener('touchstart', function(e) {
+          if (e.touches.length > 1) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+        
+        // 防止雙擊縮放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, false);
+      }
+      
       const loadingOverlay = document.getElementById('loadingOverlay');
       const countdownEl = document.getElementById('loadingCountdown');
       const dotsEl = document.getElementById('loadingDots');
@@ -1979,15 +2028,30 @@
         }, 300);
       }
       
-      // 每 30 秒自動刷新庫存（即時更新，使用當前場地）
+      // 🔧 iOS 修復：延長自動刷新時間至 60 秒（減少干擾）
       setInterval(() => {
+        // 檢查用戶是否正在操作
+        const activeElement = document.activeElement;
+        const isUserInteracting = activeElement && (
+          activeElement.tagName === 'INPUT' || 
+          activeElement.tagName === 'SELECT' || 
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.tagName === 'BUTTON'
+        );
+        
+        // 如果用戶正在操作，延後刷新
+        if (isUserInteracting) {
+          console.log('⏸️ 用户正在操作，延後库存刷新');
+          return;
+        }
+        
         if (CURRENT_VENUE) {
           console.log(`🔄 自動刷新場地 ${CURRENT_VENUE} 的庫存...`, new Date().toLocaleTimeString());
         } else {
           console.log('🔄 自動刷新預設庫存...', new Date().toLocaleTimeString());
         }
         loadInventory(); // 會自動使用 CURRENT_VENUE
-      }, 30000);
+      }, 60000); // 改為 60 秒（原本 30 秒）
     });
 
     // ====== 清空按鈕 ======
