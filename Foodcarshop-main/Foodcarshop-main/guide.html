@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+  <title>快閃餐車小幫手-系統範例</title>
+  <style>
+    :root{
+      --bg: linear-gradient(135deg, #fef9f3 0%, #faf5ed 100%);
+      --card:#ffffff;
+      --text:#1a1a1a;
+      --primary:#d97706;
+      --primary-dark:#b45309;
+      --accent:#f59e0b;
+      --success:#059669;
+      --danger:#dc2626;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow: 0 4px 20px rgba(0,0,0,.06);
+      --radius: clamp(10px, 2vw, 16px);
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+    body{
+      margin:0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #fef9f3;
+      background: var(--bg);
+      color:var(--text); 
+      line-height:1.6;
+      font-size: clamp(15px, 3.5vw, 16px);
+      letter-spacing: 0.3px;
+      padding-bottom: 20px;
+    }
+    
+    /* Header */
+    .brand-header{
+      background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+      color:#fff;
+      padding: clamp(16px, 4vw, 24px) clamp(12px, 3vw, 16px);
+      text-align:center;
+      box-shadow: 0 4px 16px rgba(217,119,6,.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-title{
+      font-size: clamp(22px, 5vw, 28px);
+      font-weight: 800;
+      margin:0 0 clamp(4px, 1vw, 6px);
+      letter-spacing: 0.5px;
+    }
+    .brand-subtitle{
+      font-size: clamp(13px, 3vw, 15px);
+      opacity:.95;
+      margin: 0;
+      font-weight: 400;
+    }
+    
+    /* 容器 */
+    .container{
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: clamp(16px, 4vw, 24px);
+    }
+    
+    /* 卡片 */
+    .card{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 5vw, 28px);
+      margin-bottom: clamp(16px, 4vw, 24px);
+    }
+    
+    /* 標題 */
+    .section-title{
+      font-size: clamp(20px, 4.5vw, 24px);
+      font-weight: 700;
+      margin: 0 0 clamp(16px, 4vw, 20px);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+    }
+    .section-title::before{
+      content: '';
+      width: 5px;
+      height: clamp(20px, 5vw, 24px);
+      background: var(--primary);
+      border-radius: 3px;
+    }
+    
+    /* 步驟卡片 */
+    .step-card{
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(14px, 3.5vw, 18px);
+      transition: all .3s ease;
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .step-card:hover{
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(217,119,6,.15);
+      transform: translateY(-2px);
+    }
+    
+    /* 步骤网格布局 */
+    .steps-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(14px, 3.5vw, 18px);
+    }
+    @media(min-width: 768px){
+      .steps-grid{ 
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media(min-width: 1024px){
+      .steps-grid.main-steps{ 
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .steps-grid.advanced-steps{ 
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    /* FAQ 网格 */
+    .faq-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(10px, 2.5vw, 12px);
+    }
+    @media(min-width: 768px){
+      .faq-grid{ 
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media(min-width: 1024px){
+      .faq-grid{ 
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    .step-number{
+      position: absolute;
+      top: clamp(12px, 3vw, 16px);
+      right: clamp(12px, 3vw, 16px);
+      width: clamp(40px, 10vw, 50px);
+      height: clamp(40px, 10vw, 50px);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(18px, 4vw, 22px);
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(217,119,6,.3);
+    }
+    
+    .step-title{
+      font-size: clamp(15px, 3.5vw, 17px);
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 clamp(8px, 2vw, 10px);
+      padding-right: clamp(50px, 12vw, 60px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .step-content{
+      font-size: clamp(12px, 2.8vw, 13px);
+      line-height: 1.6;
+      color: var(--text);
+      flex: 1;
+    }
+    .step-content ul{
+      margin: clamp(6px, 1.5vw, 8px) 0;
+      padding-left: 18px;
+    }
+    .step-content li{
+      margin-bottom: clamp(3px, 0.8vw, 4px);
+      line-height: 1.5;
+    }
+    
+    .step-image{
+      width: 100%;
+      border-radius: clamp(6px, 1.5vw, 8px);
+      border: 1.5px solid var(--border);
+      margin-top: auto;
+      display: block;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+    .step-image:hover{
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(217,119,6,.2);
+      transform: scale(1.02);
+    }
+    .image-hint{
+      text-align: center;
+      font-size: clamp(9px, 2vw, 10px);
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    
+    /* 提示框 */
+    .tip-box{
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-left: 4px solid var(--accent);
+      padding: clamp(12px, 3vw, 16px);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      margin: clamp(12px, 3vw, 16px) 0;
+    }
+    .tip-box strong{
+      color: var(--primary);
+    }
+    
+    /* 特色列表 */
+    .feature-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: clamp(12px, 3vw, 16px);
+      margin: clamp(16px, 4vw, 20px) 0;
+    }
+    .feature-item{
+      background: #f9fafb;
+      padding: clamp(14px, 3.5vw, 18px);
+      border-radius: clamp(8px, 2vw, 10px);
+      border: 1.5px solid var(--border);
+      transition: all .3s ease;
+    }
+    .feature-item:hover{
+      border-color: var(--primary);
+      background: #fffbeb;
+      transform: translateY(-2px);
+    }
+    .feature-icon{
+      font-size: clamp(32px, 8vw, 40px);
+      margin-bottom: clamp(8px, 2vw, 10px);
+      display: block;
+    }
+    .feature-title{
+      font-size: clamp(15px, 3.5vw, 17px);
+      font-weight: 700;
+      margin-bottom: clamp(6px, 1.5vw, 8px);
+      color: var(--text);
+    }
+    .feature-desc{
+      font-size: clamp(13px, 3vw, 14px);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    /* 按鈕 */
+    .btn-primary{
+      display: inline-block;
+      padding: clamp(12px, 3vw, 16px) clamp(24px, 6vw, 32px);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      text-decoration: none;
+      border-radius: clamp(8px, 2vw, 10px);
+      font-size: clamp(15px, 3.5vw, 17px);
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(217,119,6,.3);
+      transition: all .3s ease;
+      text-align: center;
+    }
+    .btn-primary:hover{
+      box-shadow: 0 6px 20px rgba(217,119,6,.4);
+      transform: translateY(-2px);
+    }
+    
+    /* FAQ */
+    .faq-item{
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      padding: clamp(12px, 3vw, 14px);
+      height: 100%;
+      transition: all .3s ease;
+    }
+    .faq-item:hover{
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(217,119,6,.1);
+    }
+    .faq-question{
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: clamp(6px, 1.5vw, 7px);
+      font-size: clamp(13px, 3vw, 14px);
+      line-height: 1.4;
+    }
+    .faq-answer{
+      color: var(--text);
+      font-size: clamp(11px, 2.5vw, 12px);
+      line-height: 1.6;
+    }
+    .faq-answer strong{
+      color: var(--primary);
+      white-space: nowrap;
+    }
+    
+    /* 底部 */
+    .footer{
+      text-align: center;
+      padding: clamp(20px, 5vw, 30px) clamp(12px, 3vw, 16px);
+      color: var(--muted);
+      font-size: clamp(10px, 2.2vw, 11px);
+      line-height: 1.8;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+      margin-top: clamp(20px, 5vw, 30px);
+    }
+    .footer a{
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer a:hover{
+      text-decoration: underline;
+    }
+    
+    /* 圖片放大模態框 */
+    .modal{
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.9);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn .3s ease;
+    }
+    .modal.active{ display: flex; }
+    .modal-content{
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: var(--radius);
+      animation: zoomIn .3s ease;
+    }
+    @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+    @keyframes zoomIn{ from{transform:scale(.9)} to{transform:scale(1)} }
+    
+    /* 返回按鈕 */
+    .back-btn{
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: clamp(50px, 12vw, 60px);
+      height: clamp(50px, 12vw, 60px);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(24px, 6vw, 28px);
+      box-shadow: 0 4px 16px rgba(217,119,6,.4);
+      cursor: pointer;
+      transition: all .3s ease;
+      z-index: 100;
+      text-decoration: none;
+    }
+    .back-btn:hover{
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(217,119,6,.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="brand-header">
+    <h1 class="brand-title">快閃餐車小幫手</h1>
+    <p class="brand-subtitle">系統範例｜使用說明</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- 快速開始 -->
+    <div class="card">
+      <h2 class="section-title">🚀 快速開始</h2>
+      <p style="font-size:clamp(13px,3vw,14px); line-height:1.6; margin-bottom:clamp(14px,3.5vw,16px); color:var(--muted);">
+        快閃餐車線上訂購系統範例｜4步驟完成預訂｜適用餐車、小吃攤、外帶店
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2.5vw,12px);">
+        <a href="https://511669a1.foodcarshop.pages.dev/%E9%B9%BD%E6%B0%B4%E9%9B%9E%E5%B0%88%E6%A1%88/%E5%85%AC%E9%96%8B%E8%A9%A6%E7%AF%84%E7%89%88%E6%9C%AC/opentext" target="_blank" class="btn-primary" style="width:100%;">
+          🛒 開始訂購
+        </a>
+        <a href="https://docs.google.com/spreadsheets/d/1zY-y7flT2zL3SrVFL3kr4x8whwsQz_Ai5QwGXqlNVXM/edit?gid=1899503625#gid=1899503625" target="_blank" class="btn-primary" style="width:100%; background:linear-gradient(135deg,#059669,#10b981);">
+          📊 後台管理
+        </a>
+      </div>
+    </div>
+
+    <!-- 系統特色 -->
+    <div class="card">
+      <h2 class="section-title">✨ 系統特色</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <span class="feature-icon">📊</span>
+          <div class="feature-title">即時庫存</div>
+          <div class="feature-desc">顯示剩餘數量，避免缺貨</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔄</span>
+          <div class="feature-title">自動刷新</div>
+          <div class="feature-desc">30秒更新，資訊即時</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💰</span>
+          <div class="feature-title">自動計算</div>
+          <div class="feature-desc">選購時即時顯示總額</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📱</span>
+          <div class="feature-title">響應式</div>
+          <div class="feature-desc">手機平板電腦皆適用</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🎨</span>
+          <div class="feature-title">顏色預警</div>
+          <div class="feature-desc">綠充足 橙偏低 紅缺貨</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📋</span>
+          <div class="feature-title">訂單摘要</div>
+          <div class="feature-desc">自動生成可複製分享</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 詳細步驟 -->
+    <div class="card">
+      <h2 class="section-title">📖 詳細操作步驟</h2>
+      
+      <div class="steps-grid main-steps">
+      <!-- 步驟 1 -->
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="step-title">📝 填寫基本資料</h3>
+        <div class="step-content">
+          <p><strong>必填資訊：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>餐群姓名 & 群組 ID（例如：王小明 #A123）</li>
+            <li>手機末 3 碼或全碼（例如：123 或 0912345678）</li>
+            <li>取餐方式（現場自取 / 託人代取）</li>
+            <li>預計取餐時間（選擇時和分）</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/dtTgLLGB/image.jpg" alt="填寫基本資料" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
+
+      <!-- 步驟 2 -->
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="step-title">🍗 選擇商品</h3>
+        <div class="step-content">
+          <ul>
+            <li>主餐 $150/份</li>
+            <li>配菜 $30/份</li>
+            <li>+/- 調整數量</li>
+            <li>查看庫存狀態</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/L6M33XrZ/image.jpg" alt="選擇主餐與配菜" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
+
+      <!-- 步驟 3 -->
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="step-title">🌶️ 客製口味</h3>
+        <div class="step-content">
+          <ul>
+            <li>辣度：5種選擇</li>
+            <li>鹹度：3種選擇</li>
+            <li>檸檬、蔥泥</li>
+            <li>備註說明</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/Y0BDFx6B/image.jpg" alt="客製化口味" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
+
+      <!-- 步驟 4 -->
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <h3 class="step-title">✅ 送出訂單</h3>
+        <div class="step-content">
+          <ul>
+            <li>查看訂單預覽</li>
+            <li>確認總金額</li>
+            <li>點擊送出</li>
+            <li>取得訂單編號</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/KvyDDzd1/image.jpg" alt="確認送出訂單" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
+      </div>
+    </div>
+    
+    <!-- 進階功能 -->
+    <div class="card">
+      <h2 class="section-title">🔧 進階功能</h2>
+      
+      <div class="steps-grid advanced-steps">
+      <!-- 後台訂單管理 -->
+      <div class="step-card">
+        <div class="step-number">📊</div>
+        <h3 class="step-title">後台管理</h3>
+        <div class="step-content">
+          <ul>
+            <li>Google Sheets 查看訂單</li>
+            <li>訂單摘要複製到 LINE</li>
+            <li>匯出 Excel 分析</li>
+            <li>即時監控訂單狀態</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/TYXJJwZp/image.jpg" alt="後台訂單管理" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
+      
+      <!-- 庫存即時連動 -->
+      <div class="step-card">
+        <div class="step-number">🔄</div>
+        <h3 class="step-title">庫存連動</h3>
+        <div class="step-content">
+          <ul>
+            <li>店家調整 → 自動更新</li>
+            <li>下單 → 自動扣減</li>
+            <li>防超賣鎖定機制</li>
+            <li>30秒自動刷新</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/tCHNNTLX/image.jpg" alt="庫存即時連動" class="step-image" onclick="openModal(this.src)">
+        <div class="image-hint">🔍 點擊放大</div>
+      </div>
+      </div>
+    </div>
+
+    <!-- 常見問題 -->
+    <div class="card">
+      <h2 class="section-title">❓ 常見問題</h2>
+      
+      <div class="faq-grid">
+      <div class="faq-item">
+        <div class="faq-question">Q1: 如何查看庫存？</div>
+        <div class="faq-answer">
+          商品旁顯示<strong>庫存(當前/總數)</strong><br>🟢綠色充足 🟡橙色偏低 🔴紅色缺貨
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q2: 庫存不足怎麼辦？</div>
+        <div class="faq-answer">
+          系統會顯示錯誤並<strong>自動歸零</strong>該商品，可立即調整訂單重新送出
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q3: 可以改單嗎？</div>
+        <div class="faq-answer">
+          送出後無法直接修改，請聯繫店家並提供訂單編號
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q4: 訂單編號格式？</div>
+        <div class="faq-answer">
+          <strong>月日-序號</strong>（例:1010-001）<br>每天從001重新開始
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q5: 為何無法選購？</div>
+        <div class="faq-answer">
+          顯示「缺貨中」表示庫存為0，請選擇其他商品或稍後再試
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q6: 會超賣嗎？</div>
+        <div class="faq-answer">
+          <strong>不會！</strong>採用智能鎖定機制，確保庫存準確無誤
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- 注意事項 -->
+    <div class="card">
+      <h2 class="section-title">⚠️ 注意事項</h2>
+      <div style="background:#fff7ed; padding:clamp(12px,3vw,14px); border-radius:clamp(6px,1.5vw,8px); border:1.5px solid #fed7aa;">
+        <ul style="margin:0; padding-left:18px; line-height:1.7; font-size:clamp(11px,2.5vw,12px);">
+          <li>準時到場取餐</li>
+          <li>建議提前10-15分鐘預訂</li>
+          <li>庫存30秒更新，以送出時為準</li>
+          <li>問題請聯繫店家或加入LINE</li>
+          <li>確保手機暢通</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card" style="text-align:center; background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%); border:2px solid var(--accent);">
+      <div style="font-size:clamp(18px,4.5vw,22px); font-weight:800; margin-bottom:clamp(10px,2.5vw,12px); color:var(--primary);">
+        立即體驗系統
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2.5vw,12px); max-width:500px; margin:0 auto;">
+        <a href="https://511669a1.foodcarshop.pages.dev/%E9%B9%BD%E6%B0%B4%E9%9B%9E%E5%B0%88%E6%A1%88/%E5%85%AC%E9%96%8B%E8%A9%A6%E7%AF%84%E7%89%88%E6%9C%AC/opentext" target="_blank" class="btn-primary" style="font-size:clamp(14px,3.5vw,16px);">
+          🛒 訂購頁
+        </a>
+        <a href="https://docs.google.com/spreadsheets/d/1zY-y7flT2zL3SrVFL3kr4x8whwsQz_Ai5QwGXqlNVXM/edit?gid=1899503625#gid=1899503625" target="_blank" class="btn-primary" style="font-size:clamp(14px,3.5vw,16px); background:linear-gradient(135deg,#059669,#10b981);">
+          📊 後台
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 圖片放大模態框 -->
+  <div class="modal" id="imageModal" onclick="closeModal()">
+    <img src="" alt="" class="modal-content" id="modalImage">
+  </div>
+
+  <!-- LINE 官方帳號按鈕 -->
+  <a href="https://lin.ee/YyXagFg" target="_blank" class="back-btn" title="加入 LINE 官方帳號" style="background:#06c755; box-shadow:0 4px 16px rgba(6,199,85,.4);">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+      <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+    </svg>
+  </a>
+
+  <!-- 底部版權 -->
+  <footer class="footer">
+    <div>
+      系統開發：<a href="https://lin.ee/YyXagFg" target="_blank" rel="noopener noreferrer">快閃餐車小幫手</a> © 2025
+    </div>
+    <div style="margin-top:8px; font-size:clamp(9px,2vw,10px); color:#9ca3af;">
+      ⚠️ 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
+    </div>
+  </footer>
+
+  <script>
+    // 圖片放大功能
+    function openModal(src) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('modalImage');
+      modalImg.src = src;
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
+

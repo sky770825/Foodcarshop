@@ -1,0 +1,56 @@
+{
+  "name": "極品鹽水雞｜線上訂購系統",
+  "short_name": "鹽水雞訂購",
+  "description": "極品鹽水雞線上訂購系統 - 新鮮美味，現點現做",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fef9f3",
+  "theme_color": "#d97706",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "business"],
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "立即訂餐",
+      "short_name": "訂餐",
+      "description": "開始訂購美味鹽水雞",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}
+

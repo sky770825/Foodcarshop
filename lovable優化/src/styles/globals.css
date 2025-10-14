@@ -1,0 +1,438 @@
+/**
+ * 🎨 全局样式
+ * 基于原始设计，保留橘色主题
+ */
+
+/* ========== CSS 变量（支持深色模式） ========== */
+:root {
+  /* 浅色主题 */
+  --bg: linear-gradient(135deg, #fef9f3 0%, #faf5ed 100%);
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --primary: #d97706;
+  --primary-dark: #b45309;
+  --accent: #f59e0b;
+  --success: #059669;
+  --danger: #dc2626;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --radius: clamp(10px, 2vw, 16px);
+}
+
+/* 深色主题 */
+[data-theme='dark'] {
+  --bg: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  --card: #262626;
+  --text: #f5f5f5;
+  --primary: #f59e0b;
+  --primary-dark: #d97706;
+  --accent: #fbbf24;
+  --success: #10b981;
+  --danger: #ef4444;
+  --muted: #9ca3af;
+  --border: #404040;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ========== 重置样式 ========== */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  background: #fef9f3;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  font-size: clamp(15px, 3.5vw, 16px);
+  letter-spacing: 0.3px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== 通用元素 ========== */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 14px);
+  border: 1.5px solid var(--border);
+  border-radius: clamp(8px, 2vw, 10px);
+  background: #fff;
+  font-size: clamp(15px, 3.5vw, 16px);
+  font-family: inherit;
+  transition: all 0.2s ease;
+  color: var(--text);
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
+textarea {
+  min-height: clamp(70px, 18vw, 90px);
+  resize: vertical;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ========== 無障礙 ========== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+*:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ========== 捲軸樣式 ========== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--card);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ========== 動畫 ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== 通用工具類別 ========== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 16px);
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(14px, 3.5vw, 18px);
+  margin-bottom: clamp(12px, 3vw, 16px);
+  animation: fadeIn 0.3s ease;
+}
+
+/* 區塊標題 */
+.section-title {
+  font-size: clamp(17px, 4.2vw, 19px);
+  font-weight: 700;
+  margin: 0 0 clamp(12px, 3vw, 14px);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: clamp(17px, 4vw, 20px);
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+/* 表單欄位 */
+.form-group {
+  margin-bottom: clamp(12px, 3vw, 14px);
+}
+.form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: clamp(6px, 1.5vw, 7px);
+  font-size: clamp(14px, 3.2vw, 15px);
+  color: var(--text);
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+}
+.form-label .required {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+/* 商品網格 - 多欄響應式 */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 手機預設 2 欄 */
+  gap: clamp(10px, 2.5vw, 12px);
+}
+@media (min-width: 600px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr); /* 平板 3 欄 */
+  }
+}
+@media (min-width: 900px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr); /* 電腦 4 欄 */
+  }
+}
+
+/* 單點配菜 - 分類容器 */
+.side-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 手機 2 欄 */
+  gap: clamp(8px, 2vw, 10px);
+  align-items: start;
+}
+@media (min-width: 768px) {
+  .side-list {
+    grid-template-columns: repeat(3, 1fr); /* 平板 3 欄 */
+  }
+}
+@media (min-width: 1024px) {
+  .side-list {
+    grid-template-columns: repeat(4, 1fr); /* 電腦 4 欄 */
+  }
+}
+
+/* 總計 */
+.total-section {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding: clamp(10px, 2.5vw, 14px);
+  border-radius: var(--radius);
+  margin: clamp(10px, 2.5vw, 12px) 0;
+}
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.total-label {
+  font-size: clamp(15px, 3.5vw, 16px);
+  font-weight: 600;
+}
+.total-amount {
+  font-size: clamp(22px, 5vw, 26px);
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* 按鈕群組 */
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: clamp(8px, 2vw, 10px);
+  margin-top: clamp(10px, 2.5vw, 12px);
+}
+
+/* 按鈕樣式 */
+.btn-primary {
+  padding: clamp(10px, 2.2vw, 12px) clamp(12px, 3vw, 16px);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3);
+  border: none;
+  border-radius: clamp(6px, 1.5vw, 8px);
+  font-size: clamp(14px, 3vw, 15px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  padding: clamp(10px, 2.2vw, 12px) clamp(12px, 3vw, 16px);
+  background: #fff;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: clamp(6px, 1.5vw, 8px);
+  font-size: clamp(14px, 3vw, 15px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--muted);
+}
+
+/* 訊息 */
+.message {
+  margin-top: clamp(8px, 2vw, 10px);
+  padding: clamp(8px, 2vw, 10px);
+  border-radius: clamp(4px, 1vw, 6px);
+  font-size: clamp(13px, 2.8vw, 14px);
+  font-weight: 600;
+}
+.message.success {
+  background: #d1fae5;
+  color: var(--success);
+  border: 1.5px solid var(--success);
+}
+.message.error {
+  background: #fee2e2;
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+}
+
+/* 預覽+總計區域容器 */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(8px, 2vw, 10px);
+}
+
+/* 口味客製網格 */
+.taste-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 手機 2x2 */
+  gap: clamp(8px, 2vw, 10px);
+}
+
+/* 響應式調整 */
+@media (min-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1.2fr 0.8fr; /* 電腦版：預覽較寬，總計較窄 */
+  }
+  .taste-grid {
+    grid-template-columns: repeat(4, 1fr); /* 電腦版：一行 4 欄 */
+  }
+}
+
+/* ========== 響應式 ========== */
+@media (min-width: 768px) {
+  .container {
+    padding: clamp(12px, 3vw, 18px);
+  }
+}
+
+/* ========== iOS 優化 ========== */
+@supports (-webkit-touch-callout: none) {
+  body {
+    /* iOS Safari 特定優化 */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea {
+    -webkit-user-select: text;
+  }
+}
+
+/* ========== 列印樣式 ========== */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+

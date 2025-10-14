@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+  <title>極品鹽水雞｜訂購使用說明</title>
+  <style>
+    :root{
+      --bg: linear-gradient(135deg, #fef9f3 0%, #faf5ed 100%);
+      --card:#ffffff;
+      --text:#1a1a1a;
+      --primary:#d97706;
+      --primary-dark:#b45309;
+      --accent:#f59e0b;
+      --success:#059669;
+      --danger:#dc2626;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow: 0 4px 20px rgba(0,0,0,.06);
+      --radius: clamp(10px, 2vw, 16px);
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+    body{
+      margin:0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #fef9f3;
+      background: var(--bg);
+      color:var(--text); 
+      line-height:1.6;
+      font-size: clamp(15px, 3.5vw, 16px);
+      letter-spacing: 0.3px;
+      padding-bottom: 20px;
+    }
+    
+    /* Header */
+    .brand-header{
+      background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+      color:#fff;
+      padding: clamp(16px, 4vw, 24px) clamp(12px, 3vw, 16px);
+      text-align:center;
+      box-shadow: 0 4px 16px rgba(217,119,6,.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-title{
+      font-size: clamp(22px, 5vw, 28px);
+      font-weight: 800;
+      margin:0 0 clamp(4px, 1vw, 6px);
+      letter-spacing: 0.5px;
+    }
+    .brand-subtitle{
+      font-size: clamp(13px, 3vw, 15px);
+      opacity:.95;
+      margin: 0;
+      font-weight: 400;
+    }
+    
+    /* 容器 */
+    .container{
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: clamp(16px, 4vw, 24px);
+    }
+    
+    /* 卡片 */
+    .card{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 5vw, 28px);
+      margin-bottom: clamp(16px, 4vw, 24px);
+    }
+    
+    /* 標題 */
+    .section-title{
+      font-size: clamp(20px, 4.5vw, 24px);
+      font-weight: 700;
+      margin: 0 0 clamp(16px, 4vw, 20px);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+    }
+    .section-title::before{
+      content: '';
+      width: 5px;
+      height: clamp(20px, 5vw, 24px);
+      background: var(--primary);
+      border-radius: 3px;
+    }
+    
+    /* 步驟卡片 */
+    .step-card{
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(16px, 4vw, 20px);
+      margin-bottom: clamp(16px, 4vw, 20px);
+      transition: all .3s ease;
+      position: relative;
+    }
+    .step-card:hover{
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(217,119,6,.15);
+      transform: translateY(-2px);
+    }
+    
+    .step-number{
+      position: absolute;
+      top: clamp(12px, 3vw, 16px);
+      right: clamp(12px, 3vw, 16px);
+      width: clamp(40px, 10vw, 50px);
+      height: clamp(40px, 10vw, 50px);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(18px, 4vw, 22px);
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(217,119,6,.3);
+    }
+    
+    .step-title{
+      font-size: clamp(17px, 4vw, 20px);
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 clamp(10px, 2.5vw, 12px);
+      padding-right: clamp(50px, 12vw, 60px);
+    }
+    
+    .step-content{
+      font-size: clamp(14px, 3.2vw, 15px);
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: clamp(12px, 3vw, 16px);
+    }
+    
+    .step-image{
+      width: 100%;
+      border-radius: clamp(8px, 2vw, 12px);
+      border: 2px solid var(--border);
+      margin-top: clamp(12px, 3vw, 16px);
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+    .step-image:hover{
+      border-color: var(--primary);
+      box-shadow: 0 4px 16px rgba(217,119,6,.2);
+      transform: scale(1.02);
+    }
+    
+    /* 提示框 */
+    .tip-box{
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-left: 4px solid var(--accent);
+      padding: clamp(12px, 3vw, 16px);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      margin: clamp(12px, 3vw, 16px) 0;
+    }
+    .tip-box strong{
+      color: var(--primary);
+    }
+    
+    /* 特色列表 */
+    .feature-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: clamp(12px, 3vw, 16px);
+      margin: clamp(16px, 4vw, 20px) 0;
+    }
+    .feature-item{
+      background: #f9fafb;
+      padding: clamp(14px, 3.5vw, 18px);
+      border-radius: clamp(8px, 2vw, 10px);
+      border: 1.5px solid var(--border);
+      transition: all .3s ease;
+    }
+    .feature-item:hover{
+      border-color: var(--primary);
+      background: #fffbeb;
+      transform: translateY(-2px);
+    }
+    .feature-icon{
+      font-size: clamp(32px, 8vw, 40px);
+      margin-bottom: clamp(8px, 2vw, 10px);
+      display: block;
+    }
+    .feature-title{
+      font-size: clamp(15px, 3.5vw, 17px);
+      font-weight: 700;
+      margin-bottom: clamp(6px, 1.5vw, 8px);
+      color: var(--text);
+    }
+    .feature-desc{
+      font-size: clamp(13px, 3vw, 14px);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    
+    /* 按鈕 */
+    .btn-primary{
+      display: inline-block;
+      padding: clamp(12px, 3vw, 16px) clamp(24px, 6vw, 32px);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      text-decoration: none;
+      border-radius: clamp(8px, 2vw, 10px);
+      font-size: clamp(15px, 3.5vw, 17px);
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(217,119,6,.3);
+      transition: all .3s ease;
+      text-align: center;
+    }
+    .btn-primary:hover{
+      box-shadow: 0 6px 20px rgba(217,119,6,.4);
+      transform: translateY(-2px);
+    }
+    
+    /* FAQ */
+    .faq-item{
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: clamp(8px, 2vw, 10px);
+      padding: clamp(14px, 3.5vw, 18px);
+      margin-bottom: clamp(10px, 2.5vw, 12px);
+    }
+    .faq-question{
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: clamp(6px, 1.5vw, 8px);
+      font-size: clamp(14px, 3.2vw, 16px);
+    }
+    .faq-answer{
+      color: var(--text);
+      font-size: clamp(13px, 3vw, 14px);
+      line-height: 1.7;
+    }
+    
+    /* 底部 */
+    .footer{
+      text-align: center;
+      padding: clamp(20px, 5vw, 30px) clamp(12px, 3vw, 16px);
+      color: var(--muted);
+      font-size: clamp(10px, 2.2vw, 11px);
+      line-height: 1.8;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+      margin-top: clamp(20px, 5vw, 30px);
+    }
+    .footer a{
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer a:hover{
+      text-decoration: underline;
+    }
+    
+    /* 圖片放大模態框 */
+    .modal{
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.9);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn .3s ease;
+    }
+    .modal.active{ display: flex; }
+    .modal-content{
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: var(--radius);
+      animation: zoomIn .3s ease;
+    }
+    @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+    @keyframes zoomIn{ from{transform:scale(.9)} to{transform:scale(1)} }
+    
+    /* 返回按鈕 */
+    .back-btn{
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: clamp(50px, 12vw, 60px);
+      height: clamp(50px, 12vw, 60px);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(24px, 6vw, 28px);
+      box-shadow: 0 4px 16px rgba(217,119,6,.4);
+      cursor: pointer;
+      transition: all .3s ease;
+      z-index: 100;
+      text-decoration: none;
+    }
+    .back-btn:hover{
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(217,119,6,.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="brand-header">
+    <h1 class="brand-title">🍗 極品鹽水雞</h1>
+    <p class="brand-subtitle">線上訂購系統｜使用說明</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- 快速開始 -->
+    <div class="card">
+      <h2 class="section-title">🚀 快速開始</h2>
+      <p style="font-size:clamp(14px,3.2vw,16px); line-height:1.8; margin-bottom:clamp(16px,4vw,20px);">
+        歡迎使用極品鹽水雞線上訂購系統！只需 <strong style="color:var(--primary)">3 個步驟</strong>，輕鬆完成預訂。
+      </p>
+      <a href="cheenken.html" class="btn-primary" style="width:100%; display:block;">
+        ✨ 立即開始訂購
+      </a>
+    </div>
+
+    <!-- 系統特色 -->
+    <div class="card">
+      <h2 class="section-title">✨ 系統特色</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <span class="feature-icon">📊</span>
+          <div class="feature-title">即時庫存顯示</div>
+          <div class="feature-desc">隨時查看商品庫存，避免訂購缺貨商品</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔄</span>
+          <div class="feature-title">自動刷新同步</div>
+          <div class="feature-desc">每 30 秒自動更新庫存，確保資訊即時</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💰</span>
+          <div class="feature-title">即時計算金額</div>
+          <div class="feature-desc">選購商品時自動計算總金額，清楚明瞭</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📱</span>
+          <div class="feature-title">響應式設計</div>
+          <div class="feature-desc">支援手機、平板、電腦，任何裝置都好用</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🎨</span>
+          <div class="feature-title">顏色智能預警</div>
+          <div class="feature-desc">庫存充足綠色，偏低橙色，缺貨紅色</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📋</span>
+          <div class="feature-title">訂單摘要</div>
+          <div class="feature-desc">訂單完成後自動生成摘要，方便確認</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 詳細步驟 -->
+    <div class="card">
+      <h2 class="section-title">📖 詳細操作步驟</h2>
+      
+      <!-- 步驟 1 -->
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="step-title">📝 填寫基本資料</h3>
+        <div class="step-content">
+          <p><strong>必填資訊：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>餐群姓名 & 群組 ID（例如：王小明 #A123）</li>
+            <li>手機末 3 碼或全碼（例如：123 或 0912345678）</li>
+            <li>取餐方式（現場自取 / 託人代取）</li>
+            <li>預計取餐時間（選擇時和分）</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/tCHNNTLX/image.jpg" alt="填寫基本資料" class="step-image" onclick="openModal(this.src)">
+      </div>
+
+      <!-- 步驟 2 -->
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="step-title">🍗 選擇主餐與配菜</h3>
+        <div class="step-content">
+          <p><strong>商品選購：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li><strong>主餐</strong>：$150/份，可選擇去骨或保留骨頭</li>
+            <li><strong>單點配菜</strong>：$30/份，多種分類可選</li>
+            <li>點擊 <strong>+/-</strong> 按鈕調整數量</li>
+            <li>查看右側的<span style="color:var(--success)">庫存(當前/總數)</span>狀態</li>
+          </ul>
+          <div class="tip-box">
+            💡 <strong>小提示：</strong>庫存不足的商品會顯示「缺貨中」標籤且無法選購
+          </div>
+        </div>
+        <img src="https://i.postimg.cc/TYXJJwZp/image.jpg" alt="選擇商品" class="step-image" onclick="openModal(this.src)">
+      </div>
+
+      <!-- 步驟 3 -->
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="step-title">🌶️ 客製化口味</h3>
+        <div class="step-content">
+          <p><strong>調整您的口味偏好：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li><strong>辣度</strong>：不辣 / 微辣 / 小辣 / 中辣 / 大辣</li>
+            <li><strong>鹹度</strong>：清淡 / 正常 / 重鹹</li>
+            <li><strong>檸檬</strong>：加檸檬 / 不加檸檬</li>
+            <li><strong>蔥泥</strong>：加蔥泥 / 不加蔥泥</li>
+            <li><strong>備註</strong>：特殊需求（例如：不吃香菜、多黃瓜）</li>
+          </ul>
+        </div>
+        <img src="https://i.postimg.cc/KvyDDzd1/image.jpg" alt="客製化口味" class="step-image" onclick="openModal(this.src)">
+      </div>
+
+      <!-- 步驟 4 -->
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <h3 class="step-title">✅ 確認送出訂單</h3>
+        <div class="step-content">
+          <p><strong>最後確認：</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>查看「訂單預覽」區域，確認商品與數量</li>
+            <li>確認「訂單總額」金額正確</li>
+            <li>點擊 <strong style="color:var(--primary)">「✓ 送出訂單」</strong> 按鈕</li>
+            <li>系統會檢查庫存並生成訂單編號</li>
+          </ul>
+          <div class="tip-box">
+            ✅ <strong>訂單成功後：</strong>會顯示訂單編號（例如：1010-001）和完整訂單摘要，可直接複製分享
+          </div>
+        </div>
+        <img src="https://i.postimg.cc/L6M33XrZ/image.jpg" alt="送出訂單" class="step-image" onclick="openModal(this.src)">
+      </div>
+    </div>
+
+    <!-- 常見問題 -->
+    <div class="card">
+      <h2 class="section-title">❓ 常見問題</h2>
+      
+      <div class="faq-item">
+        <div class="faq-question">Q1: 如何知道商品還有沒有庫存？</div>
+        <div class="faq-answer">
+          每個商品旁邊都會顯示 <strong>庫存(當前/總數)</strong>，例如：庫存(12/30)。
+          <br>• 🟢 <strong>綠色</strong>：庫存充足
+          <br>• 🟡 <strong>橙色</strong>：庫存偏低
+          <br>• 🔴 <strong>紅色</strong>：已缺貨（會顯示「缺貨中」標籤）
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q2: 如果庫存不足會怎樣？</div>
+        <div class="faq-answer">
+          送出訂單時，系統會自動檢查庫存。如果某商品庫存不足，會顯示錯誤訊息並<strong>自動將該商品數量歸零</strong>，您可以立即調整訂單重新送出。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q3: 可以修改或取消訂單嗎？</div>
+        <div class="faq-answer">
+          訂單送出後無法直接修改。如需更改，請聯繫店家並提供您的訂單編號。建議送出前仔細確認「訂單預覽」區域的內容。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q4: 訂單編號是什麼格式？</div>
+        <div class="faq-answer">
+          訂單編號格式為：<strong>月日-序號</strong>（例如：1010-001）
+          <br>• 1010 = 10 月 10 日
+          <br>• 001 = 當天第 1 筆訂單
+          <br>每天序號從 001 重新開始。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q5: 為什麼有些商品無法選購？</div>
+        <div class="faq-answer">
+          顯示「缺貨中」標籤的商品表示當前庫存為 0，無法選購。建議選擇其他商品或稍後再試（庫存每 30 秒自動更新）。
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Q6: 多人同時下單會超賣嗎？</div>
+        <div class="faq-answer">
+          <strong>不會！</strong>系統採用智能鎖定機制，即使多人同時下單同一商品，也能確保庫存不會超賣。每筆訂單送出時都會即時檢查最新庫存。
+        </div>
+      </div>
+    </div>
+
+    <!-- 注意事項 -->
+    <div class="card">
+      <h2 class="section-title">⚠️ 注意事項</h2>
+      <div style="background:#fff7ed; padding:clamp(14px,3.5vw,18px); border-radius:clamp(8px,2vw,10px); border:1.5px solid #fed7aa;">
+        <ul style="margin:0; padding-left:20px; line-height:2;">
+          <li>請於預訂的取餐時間準時到場，避免影響其他顧客</li>
+          <li>訂單送出後即開始準備，建議提前 10-15 分鐘預訂</li>
+          <li>庫存資訊每 30 秒自動更新，實際庫存以送出時為準</li>
+          <li>如有任何問題，請聯繫店家或加入官方 LINE 帳號</li>
+          <li>請確保手機暢通，以便店家聯繫</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card" style="text-align:center; background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%); border:2px solid var(--accent);">
+      <div style="font-size:clamp(20px,5vw,24px); font-weight:800; margin-bottom:clamp(12px,3vw,16px); color:var(--primary);">
+        準備好開始訂購了嗎？
+      </div>
+      <a href="cheenken.html" class="btn-primary" style="font-size:clamp(16px,4vw,18px);">
+        🍗 前往訂購頁面
+      </a>
+    </div>
+
+  </div>
+
+  <!-- 圖片放大模態框 -->
+  <div class="modal" id="imageModal" onclick="closeModal()">
+    <img src="" alt="" class="modal-content" id="modalImage">
+  </div>
+
+  <!-- 返回訂購頁按鈕 -->
+  <a href="cheenken.html" class="back-btn" title="返回訂購頁">
+    🛒
+  </a>
+
+  <!-- 底部版權 -->
+  <footer class="footer">
+    <div>
+      系統開發：<a href="https://lin.ee/YyXagFg" target="_blank" rel="noopener noreferrer">快閃餐車小幫手</a> © 2025
+    </div>
+    <div style="margin-top:8px; font-size:clamp(9px,2vw,10px); color:#9ca3af;">
+      ⚠️ 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
+    </div>
+  </footer>
+
+  <script>
+    // 圖片放大功能
+    function openModal(src) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('modalImage');
+      modalImg.src = src;
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
+
