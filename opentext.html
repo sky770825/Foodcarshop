@@ -1,0 +1,2854 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  
+  <!-- 🚀 性能優化：預連接到 API -->
+  <link rel="preconnect" href="https://script.google.com" />
+  <link rel="dns-prefetch" href="https://script.google.com" />
+  <link rel="preconnect" href="https://images.unsplash.com" />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
+  
+  <title>極品鹽水雞｜線上預訂【公開測試版】</title>
+  <style>
+    :root{
+      --bg: linear-gradient(135deg, #fef9f3 0%, #faf5ed 100%);
+      --card:#ffffff;
+      --text:#1a1a1a;
+      --primary:#d97706;
+      --primary-dark:#b45309;
+      --accent:#f59e0b;
+      --success:#059669;
+      --danger:#dc2626;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow: 0 4px 20px rgba(0,0,0,.06);
+      --shadow-lg: 0 10px 40px rgba(0,0,0,.12);
+      --radius: clamp(10px, 2vw, 16px);
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+    body{
+      margin:0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #fef9f3;
+      background: var(--bg);
+      color:var(--text); 
+      line-height:1.6;
+      font-size: clamp(15px, 3.5vw, 16px);
+      letter-spacing: 0.3px;
+      padding-bottom: 20px;
+    }
+    
+    /* Header 品牌區 */
+    .brand-header{
+      background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+      color:#fff;
+      padding: clamp(12px, 3vw, 18px) clamp(12px, 3vw, 16px);
+      text-align:center;
+      box-shadow: 0 4px 16px rgba(217,119,6,.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-logo-wrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: clamp(8px, 2vw, 12px);
+      margin-bottom: 4px;
+    }
+    .brand-logo{
+      width: clamp(40px, 10vw, 56px);
+      height: clamp(40px, 10vw, 56px);
+      border-radius: 50%;
+      background: #fff;
+      padding: 6px;
+      cursor: pointer;
+      transition: transform .2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .brand-logo:hover{ transform: scale(1.05); }
+    .brand-logo:active{ transform: scale(0.98); }
+    .brand-title{
+      font-size: clamp(20px, 4.5vw, 24px);
+      font-weight: 800;
+      margin:0;
+      letter-spacing: 0.5px;
+    }
+    .brand-subtitle{
+      font-size: clamp(12px, 2.5vw, 13px);
+      opacity:.9;
+      margin: 2px 0 0;
+      font-weight: 400;
+    }
+    
+    /* 容器 */
+    .container{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: clamp(12px, 3vw, 16px);
+    }
+    
+    /* 卡片 */
+    .card{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(14px, 3.5vw, 18px);
+      margin-bottom: clamp(12px, 3vw, 16px);
+    }
+    
+    /* 區塊標題 */
+    .section-title{
+      font-size: clamp(17px, 4.2vw, 19px);
+      font-weight: 700;
+      margin: 0 0 clamp(12px, 3vw, 14px);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+    }
+    .section-title::before{
+      content: '';
+      width: 4px;
+      height: clamp(17px, 4vw, 20px);
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* 表單欄位 */
+    .form-group{
+      margin-bottom: clamp(12px, 3vw, 14px);
+    }
+    .form-label{
+      display: block;
+      font-weight: 600;
+      margin-bottom: clamp(6px, 1.5vw, 7px);
+      font-size: clamp(14px, 3.2vw, 15px);
+      color: var(--text);
+      letter-spacing: 0.3px;
+      line-height: 1.5;
+    }
+    .form-label .required{ color: var(--danger); margin-left: 2px; }
+    
+    input, select, textarea{
+      width: 100%;
+      padding: clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 14px);
+      border: 1.5px solid var(--border);
+      border-radius: clamp(8px, 2vw, 10px);
+      background: #fff;
+      font-size: clamp(15px, 3.5vw, 16px);
+      font-family: inherit;
+      transition: all .2s ease;
+      color: var(--text);
+      letter-spacing: 0.3px;
+      line-height: 1.5;
+    }
+    input:focus, select:focus, textarea:focus{
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(217,119,6,.12);
+    }
+    textarea{ min-height: clamp(70px, 18vw, 90px); resize: vertical; }
+    
+    /* 商品網格 - 多欄響應式 */
+    .product-grid{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* 手機預設 2 欄 */
+      gap: clamp(10px, 2.5vw, 12px);
+    }
+    @media(min-width: 600px){
+      .product-grid{ grid-template-columns: repeat(3, 1fr); } /* 平板 3 欄 */
+    }
+    @media(min-width: 900px){
+      .product-grid{ grid-template-columns: repeat(4, 1fr); } /* 電腦 4 欄 */
+    }
+    
+    /* 單點配菜 - 分類容器 */
+    .side-list{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* 手機 2 欄 */
+      gap: clamp(8px, 2vw, 10px);
+      align-items: start;
+    }
+    @media(min-width: 768px){
+      .side-list{ grid-template-columns: repeat(3, 1fr); } /* 平板 3 欄 */
+    }
+    @media(min-width: 1024px){
+      .side-list{ grid-template-columns: repeat(4, 1fr); } /* 電腦 4 欄 */
+    }
+    
+    .side-item{
+      display: flex;
+      align-items: center;
+      gap: clamp(5px, 1.2vw, 7px);
+      padding: clamp(7px, 1.8vw, 9px);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      transition: all .2s ease;
+    }
+    .side-item:has(input:not([value="0"])){
+      border-color: var(--primary);
+      background: #fffbeb;
+    }
+    .side-item-name{
+      flex: 1;
+      font-size: clamp(14px, 3.2vw, 15px);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.3px;
+    }
+    .side-item .qty-control{
+      padding: clamp(1px, 0.3vw, 2px);
+      flex-shrink: 0;
+    }
+    .side-item .qty-control input{
+      width: clamp(28px, 7vw, 32px);
+      font-size: clamp(13px, 3vw, 14px);
+    }
+    .side-item .qty-btn{
+      width: clamp(20px, 5vw, 24px);
+      height: clamp(20px, 5vw, 24px);
+      font-size: clamp(12px, 3vw, 14px);
+    }
+    .side-item .eye-icon{
+      cursor: pointer;
+      font-size: clamp(16px, 4vw, 18px);
+      opacity: 0.6;
+      transition: all .2s ease;
+      flex-shrink: 0;
+    }
+    .side-item .eye-icon:hover{
+      opacity: 1;
+      transform: scale(1.2);
+    }
+    
+    /* 分類區塊 */
+    .category-block{
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 分類標題（可點擊摺疊） */
+    .category-title{
+      font-size: clamp(14px, 3.2vw, 15px);
+      font-weight: 700;
+      color: var(--primary);
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      padding: clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 14px);
+      border-radius: clamp(8px, 2vw, 10px);
+      border: 1.5px solid #fed7aa;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all .2s ease;
+      letter-spacing: 0.3px;
+      line-height: 1.4;
+    }
+    .category-title:hover{
+      background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+    }
+    .category-title:active{
+      transform: scale(0.98);
+    }
+    .category-title .toggle-icon{
+      font-size: clamp(16px, 4vw, 18px);
+      transition: transform .2s ease;
+    }
+    .category-title.active .toggle-icon{
+      transform: rotate(180deg);
+    }
+    
+    /* 分類內容（可摺疊） */
+    .category-content{
+      display: flex;
+      flex-direction: column;
+      gap: clamp(4px, 1vw, 5px);
+      margin-top: clamp(4px, 1vw, 5px);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .3s ease;
+    }
+    .category-content.active{
+      max-height: 2000px;
+    }
+    
+    /* 商品卡片 */
+    .product-card{
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: clamp(6px, 1.5vw, 10px);
+      padding: clamp(6px, 1.5vw, 8px);
+      transition: all .25s ease;
+      position: relative;
+    }
+    .product-card:has(input[type="number"]:not([value="0"])){
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(217,119,6,.15);
+    }
+    .product-card:active{ transform: scale(0.98); }
+    
+    /* 缺貨商品樣式 */
+    .product-card.out-of-stock{
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .product-card.out-of-stock .product-image-wrap{
+      filter: grayscale(50%);
+    }
+    
+    /* 缺貨標籤 */
+    .out-of-stock-badge{
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      color: #fff;
+      padding: clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px);
+      border-radius: clamp(4px, 1vw, 6px);
+      font-size: clamp(11px, 2.5vw, 12px);
+      font-weight: 700;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .out-of-stock-badge::before{
+      content: '✕';
+      font-size: clamp(12px, 2.8vw, 14px);
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    /* 菜單圖片容器 */
+    .menu-image-wrap{
+      position: relative;
+      width: 100%;
+      padding-top: 75%; /* 4:3 比例 */
+      border-radius: clamp(6px, 1.5vw, 10px);
+      overflow: hidden;
+      cursor: pointer;
+      background: #f3f4f6;
+      border: 1.5px solid var(--border);
+      transition: all .25s ease;
+    }
+    .menu-image-wrap:hover{
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(217,119,6,.2);
+    }
+    .menu-image{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* 完整顯示圖片 */
+      object-position: center;
+      transition: transform .3s ease;
+    }
+    .menu-image-wrap:hover .menu-image{
+      transform: scale(1.02);
+    }
+    .menu-image-wrap::after{
+      content: '🔍 點擊放大';
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0,0,0,.7);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: clamp(10px, 2.2vw, 11px);
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .menu-image-wrap:hover::after{
+      opacity: 1;
+    }
+    
+    .product-image-wrap{
+      position: relative;
+      width: 100%;
+      padding-top: 75%; /* 改為 4:3 比例，讓圖片不那麼大 */
+      border-radius: clamp(4px, 1vw, 6px);
+      overflow: hidden;
+      margin-bottom: clamp(5px, 1.2vw, 6px);
+      cursor: pointer;
+      background: #f3f4f6;
+    }
+    .product-image{
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 置中裁切 */
+      object-position: center;
+      transition: transform .3s ease;
+    }
+    .product-image-wrap:hover .product-image{
+      transform: scale(1.05);
+    }
+    .product-image-wrap::after{
+      content: '🔍';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,.6);
+      color: #fff;
+      width: clamp(20px, 5vw, 24px);
+      height: clamp(20px, 5vw, 24px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(10px, 2.5vw, 12px);
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .product-image-wrap:hover::after{
+      opacity: 1;
+    }
+    
+    .product-name{
+      font-size: clamp(13px, 2.8vw, 14px);
+      font-weight: 600;
+      margin-bottom: clamp(3px, 0.8vw, 4px);
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .product-price{
+      font-size: clamp(14px, 3vw, 15px);
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: clamp(5px, 1.2vw, 6px);
+    }
+    .product-qty{
+      display: flex;
+      align-items: center;
+      gap: clamp(4px, 1vw, 5px);
+    }
+    .product-qty input{
+      width: 100%;
+      text-align: center;
+      padding: clamp(5px, 1.2vw, 6px);
+      font-weight: 600;
+      font-size: clamp(13px, 3vw, 15px);
+    }
+    .product-qty select{
+      padding: clamp(4px, 1vw, 5px) clamp(6px, 1.5vw, 8px);
+      font-size: clamp(10px, 2.2vw, 12px);
+      margin-top: clamp(4px, 1vw, 5px);
+    }
+    
+    /* 數量控制按鈕 */
+    .qty-control{
+      display: flex;
+      align-items: center;
+      gap: clamp(3px, 0.8vw, 4px);
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      padding: clamp(2px, 0.5vw, 3px);
+      transition: all .2s ease;
+    }
+    .qty-control:has(input:not([value="0"])){
+      border-color: var(--primary);
+      background: #fffbeb;
+    }
+    .qty-btn{
+      width: clamp(24px, 6vw, 28px);
+      height: clamp(24px, 6vw, 28px);
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: clamp(4px, 1vw, 6px);
+      font-size: clamp(14px, 3.5vw, 16px);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s ease;
+      user-select: none;
+      flex-shrink: 0;
+      padding: 0;
+      line-height: 1;
+    }
+    .qty-btn:active{
+      transform: scale(0.9);
+      background: var(--primary-dark);
+    }
+    .qty-btn:hover{
+      background: var(--primary-dark);
+    }
+    .qty-control input{
+      border: none;
+      background: transparent;
+      width: clamp(36px, 9vw, 42px);
+      text-align: center;
+      padding: clamp(4px, 1vw, 5px);
+      font-weight: 600;
+      font-size: clamp(14px, 3.2vw, 15px);
+      appearance: textfield; /* 標準屬性 */
+      -moz-appearance: textfield; /* Firefox */
+    }
+    .qty-control input::-webkit-outer-spin-button,
+    .qty-control input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .qty-control input:focus{
+      box-shadow: none;
+    }
+    
+    /* 總計 */
+    .total-section{
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      padding: clamp(10px, 2.5vw, 14px);
+      border-radius: var(--radius);
+      margin: clamp(10px, 2.5vw, 12px) 0;
+    }
+    .total-row{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total-label{
+      font-size: clamp(15px, 3.5vw, 16px);
+      font-weight: 600;
+    }
+    .total-amount{
+      font-size: clamp(22px, 5vw, 26px);
+      font-weight: 800;
+      color: var(--primary);
+    }
+    
+    /* 按鈕 */
+    .btn-group{
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: clamp(8px, 2vw, 10px);
+      margin-top: clamp(10px, 2.5vw, 12px);
+    }
+    button{
+      padding: clamp(10px, 2.2vw, 12px) clamp(12px, 3vw, 16px);
+      border: none;
+      border-radius: clamp(6px, 1.5vw, 8px);
+      font-size: clamp(14px, 3vw, 15px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: inherit;
+    }
+    .btn-primary{
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(217,119,6,.3);
+    }
+    .btn-primary:hover{ box-shadow: 0 4px 14px rgba(217,119,6,.4); transform: translateY(-1px); }
+    .btn-primary:active{ transform: translateY(0); }
+    
+    .btn-ghost{
+      background: #fff;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover{ border-color: var(--muted); }
+    
+    /* 訊息 */
+    .message{
+      margin-top: clamp(8px, 2vw, 10px);
+      padding: clamp(8px, 2vw, 10px);
+      border-radius: clamp(4px, 1vw, 6px);
+      font-size: clamp(13px, 2.8vw, 14px);
+      font-weight: 600;
+    }
+    .message.success{
+      background: #d1fae5;
+      color: var(--success);
+      border: 1.5px solid var(--success);
+    }
+    .message.error{
+      background: #fee2e2;
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    
+    /* 預覽區 */
+    .preview-box{
+      background: #f9fafb;
+      padding: clamp(10px, 2.5vw, 12px);
+      border-radius: clamp(6px, 1.5vw, 8px);
+      border: 1.5px dashed var(--border);
+      min-height: 80px;
+      font-size: clamp(13px, 2.8vw, 14px);
+      line-height: 1.6;
+    }
+    .preview-empty{
+      color: var(--muted);
+      text-align: center;
+      padding: clamp(15px, 4vw, 20px);
+    }
+    .preview-item{
+      padding: clamp(4px, 1vw, 5px) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .preview-item:last-child{ border-bottom: none; }
+    
+    /* Logo 放大模態框 */
+    .modal{
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.8);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn .2s ease;
+    }
+    .modal.active{ display: flex; }
+    .modal-content{
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: var(--radius);
+      animation: zoomIn .2s ease;
+    }
+    @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+    @keyframes zoomIn{ from{transform:scale(.8)} to{transform:scale(1)} }
+    
+    /* 預覽+總計區域容器 */
+    .summary-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(8px, 2vw, 10px);
+    }
+    
+    /* 口味客製網格 */
+    .taste-grid{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* 手機 2x2 */
+      gap: clamp(8px, 2vw, 10px);
+    }
+    
+    /* 響應式調整 */
+    @media(min-width: 768px){
+      .container{ padding: clamp(12px, 3vw, 18px); }
+      .brand-header{ padding: clamp(16px, 4vw, 24px) clamp(16px, 3vw, 20px); }
+      .summary-grid{ grid-template-columns: 1.2fr 0.8fr; } /* 電腦版：預覽較寬，總計較窄 */
+      .taste-grid{ grid-template-columns: repeat(4, 1fr); } /* 電腦版：一行 4 欄 */
+    }
+    
+    /* 底部版权信息 */
+    .footer{
+      text-align: center;
+      padding: clamp(20px, 5vw, 30px) clamp(12px, 3vw, 16px);
+      color: var(--muted);
+      font-size: clamp(10px, 2.2vw, 11px);
+      line-height: 1.8;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+      margin-top: clamp(20px, 5vw, 30px);
+    }
+    .footer a{
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all .2s ease;
+    }
+    .footer a:hover{
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+    .footer-warning{
+      margin-top: 8px;
+      font-size: clamp(9px, 2vw, 10px);
+      color: #9ca3af;
+    }
+    
+    /* 螢幕閱讀器專用（視覺隱藏但可被讀取） */
+    .sr-only{
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    
+    /* 鍵盤焦點可見性增強 */
+    *:focus-visible{
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    
+    /* 跳至主要內容連結（鍵盤焦點時顯示） */
+    .skip-link{
+      position: absolute;
+      top: -100px;
+      left: 10px;
+      z-index: 10000;
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(217,119,6,.4);
+      transition: top .3s ease;
+    }
+    .skip-link:focus{
+      position: fixed;
+      top: 10px;
+    }
+    
+    /* 載入提示 */
+    .loading-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity .3s ease;
+    }
+    .loading-overlay.hidden{
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loading-content{
+      text-align: center;
+      padding: clamp(20px, 5vw, 30px);
+    }
+    .loading-icon{
+      font-size: clamp(48px, 12vw, 64px);
+      margin-bottom: clamp(12px, 3vw, 16px);
+      animation: bounce 1s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .loading-text{
+      font-size: clamp(14px, 3.5vw, 16px);
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .loading-subtext{
+      font-size: clamp(11px, 2.5vw, 12px);
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <!-- 跳轉至主要內容連結（螢幕閱讀器及鍵盤導航用戶） -->
+  <a href="#main-content" class="skip-link">⬇️ 跳至主要內容</a>
+  
+  <!-- 載入提示遮罩 -->
+  <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite" aria-label="頁面載入中">
+    <div class="loading-content">
+      <div class="loading-icon" aria-hidden="true">🍗</div>
+      <div class="loading-text">載入中<span id="loadingDots">...</span></div>
+      <div class="loading-subtext">
+        <span id="loadingCountdown">3</span> 秒後完成
+      </div>
+    </div>
+  </div>
+  
+  <!-- 品牌 Header -->
+  <header class="brand-header" role="banner">
+    <div class="brand-logo-wrap">
+      <img 
+        src="https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=200&h=200&fit=crop&q=80" 
+        alt="極品鹽水雞 品牌標誌" 
+        class="brand-logo"
+        id="brandLogo"
+        role="button"
+        tabindex="0"
+        aria-label="點擊放大查看品牌標誌"
+      />
+      <div>
+        <h1 class="brand-title">極品鹽水雞 <span style="font-size:0.6em; opacity:0.9;">🧪 公開測試版</span></h1>
+        <p class="brand-subtitle" aria-label="定點餐車，可預訂取餐">📍 定點餐車｜預訂取餐</p>
+      </div>
+    </div>
+    </header>
+
+  <main class="container" id="main-content" role="main">
+    <form id="orderForm" autocomplete="on" aria-label="線上訂購表單">
+      
+      <!-- 菜單圖片 -->
+      <div class="card" role="region" aria-label="菜單圖片">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: clamp(8px, 2vw, 12px);">
+          <div class="menu-image-wrap" data-image="https://i.postimg.cc/FKLFbHb9/image.jpg" data-name="菜單1" role="button" tabindex="0" aria-label="點擊放大查看菜單1">
+            <img src="https://i.postimg.cc/FKLFbHb9/image.jpg" alt="菜單第一頁，顯示主餐與配菜選項" class="menu-image" loading="lazy" />
+          </div>
+          <div class="menu-image-wrap" data-image="https://i.postimg.cc/TwvdtvQ1/image.jpg" data-name="菜單2" role="button" tabindex="0" aria-label="點擊放大查看菜單2">
+            <img src="https://i.postimg.cc/TwvdtvQ1/image.jpg" alt="菜單第二頁，顯示價格與口味選項" class="menu-image" loading="lazy" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 基本資料卡片 -->
+      <div class="card" role="region" aria-labelledby="order-info-title">
+        <h2 class="section-title" id="order-info-title">訂購資料</h2>
+        
+        <!-- 場地選擇（全寬顯示） -->
+        <div class="form-group">
+          <label class="form-label" for="venueSelect">📍 取餐場地<span class="required" aria-label="必填欄位">*</span></label>
+          <select 
+            required 
+            name="venue" 
+            id="venueSelect" 
+            style="border-color:var(--primary); font-weight:600; font-size:clamp(15px,3.5vw,16px);"
+            aria-required="true"
+            aria-describedby="venue-help"
+          >
+            <option value="">請選擇取餐場地...</option>
+          </select>
+          <span id="venue-help" class="sr-only">請從下拉選單選擇您要取餐的場地</span>
+          <!-- 當前場地顯示 + 刷新按鈕 -->
+          <div id="currentVenueDisplay" style="display:none; margin-top:8px; padding:10px 14px; background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border:1.5px solid #fbbf24; border-radius:8px; font-size:clamp(13px,3vw,14px); font-weight:600; color:#92400e;" role="status" aria-live="polite">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div>
+                <span style="display:inline-block; margin-right:6px;" aria-hidden="true">🎯</span>
+                <span>當前場地：</span>
+                <span id="currentVenueName" style="color:#b45309;"></span>
+              </div>
+              <button 
+                type="button" 
+                id="refreshVenueBtn"
+                style="
+                  padding:4px 10px; 
+                  background:#fff; 
+                  border:1.5px solid #fbbf24; 
+                  border-radius:6px; 
+                  font-size:clamp(11px,2.5vw,12px); 
+                  color:#92400e; 
+                  cursor:pointer; 
+                  transition:all .2s ease;
+                  font-weight:600;
+                "
+                aria-label="重新載入場地庫存資料"
+                onclick="this.style.background='#fef3c7'"
+                onmouseout="this.style.background='#fff'"
+              >🔄 刷新</button>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(12px,3vw,16px);">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="nameInput">餐群姓名 & 群組ID<span class="required" aria-label="必填欄位">*</span></label>
+            <input 
+              required 
+              name="name" 
+              id="nameInput"
+              placeholder="例如：王小明 #A123" 
+              autocomplete="off"
+              aria-required="true"
+              aria-describedby="name-help"
+            />
+            <span id="name-help" class="sr-only">請輸入您的姓名與群組ID，例如王小明 #A123</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="phoneInput">手機末3碼或全碼<span class="required" aria-label="必填欄位">*</span></label>
+            <input 
+              required 
+              name="phone" 
+              id="phoneInput"
+              type="text" 
+              placeholder="例如：123 或 0912345678" 
+              autocomplete="tel"
+              aria-required="true"
+              aria-describedby="phone-help"
+            />
+            <span id="phone-help" class="sr-only">請輸入手機號碼末3碼或完整號碼</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(12px,3vw,16px); margin-top:clamp(14px,3.5vw,18px);">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="methodSelect">取餐方式<span class="required" aria-label="必填欄位">*</span></label>
+            <select 
+              required 
+              name="method" 
+              id="methodSelect"
+              aria-required="true"
+              aria-describedby="method-help"
+            >
+              <option value="">載入中...</option>
+            </select>
+            <span id="method-help" class="sr-only">請選擇您的取餐方式</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" id="eta-label">預計取餐時間<span class="required" aria-label="必填欄位">*</span></label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px,2vw,10px);" role="group" aria-labelledby="eta-label">
+              <select 
+                required 
+                id="etaHour" 
+                style="border-color:var(--accent); font-weight:600;"
+                aria-required="true"
+                aria-label="選擇取餐小時"
+              >
+                <option value="">時</option>
+              </select>
+              <select 
+                required 
+                id="etaMinute" 
+                style="border-color:var(--accent); font-weight:600;"
+                aria-required="true"
+                aria-label="選擇取餐分鐘"
+              >
+                <option value="">分</option>
+              </select>
+            </div>
+            <input type="hidden" name="eta" id="etaCombined" />
+          </div>
+          </div>
+        </div>
+
+      <!-- 主餐區 -->
+      <div class="card" role="region" aria-labelledby="main-dishes-title">
+        <h2 class="section-title" id="main-dishes-title">主餐選擇 <span style="color:var(--primary);font-size:clamp(14px,3.5vw,16px)" aria-label="每份150元">$150/份</span></h2>
+        <div class="product-grid" id="mains" role="list" aria-label="主餐列表"></div>
+      </div>
+
+      <!-- 單點區 -->
+      <div class="card" role="region" aria-labelledby="side-dishes-title">
+        <h2 class="section-title" id="side-dishes-title">單點配菜 <span style="color:var(--primary);font-size:clamp(14px,3.5vw,16px)" aria-label="每份30元">$30/份</span></h2>
+        <div class="side-list" id="sides" role="list" aria-label="配菜列表"></div>
+            </div>
+
+      <!-- 口味客製 -->
+      <div class="card" role="region" aria-labelledby="taste-title">
+        <h2 class="section-title" id="taste-title">口味客製</h2>
+        <div class="taste-grid">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="spicySelect"><span aria-hidden="true">🌶️</span> 辣度</label>
+            <select name="spicy" id="spicySelect" aria-label="選擇辣度">
+              <option value="不辣">不辣</option>
+              <option value="微辣">微辣</option>
+              <option value="小辣">小辣</option>
+              <option value="中辣">中辣</option>
+              <option value="大辣">大辣</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="saltinessSelect"><span aria-hidden="true">🧂</span> 鹹度</label>
+            <select name="saltiness" id="saltinessSelect" aria-label="選擇鹹度">
+              <option value="清淡">清淡</option>
+              <option value="正常" selected>正常</option>
+              <option value="重鹹">重鹹</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="lemonSelect"><span aria-hidden="true">🍋</span> 檸檬</label>
+            <select name="lemon" id="lemonSelect" aria-label="選擇是否加檸檬">
+              <option value="加檸檬" selected>加檸檬</option>
+              <option value="不加檸檬">不加檸檬</option>
+            </select>
+            </div>
+
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label" for="scallionSelect"><span aria-hidden="true">🧅</span> 蒜泥</label>
+            <select name="scallion" id="scallionSelect" aria-label="選擇是否加蒜泥">
+              <option value="加蒜泥" selected>加蒜泥</option>
+              <option value="不加蒜泥">不加蒜泥</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:clamp(16px,4vw,18px); margin-bottom:0;">
+          <label class="form-label" for="noteTextarea"><span aria-hidden="true">💬</span> 備註說明</label>
+          <textarea 
+            name="note" 
+            id="noteTextarea"
+            placeholder="💡 滿300贈送筍片，如不需要筍片請提前告知"
+            aria-label="訂單備註說明"
+            aria-describedby="note-help"
+          ></textarea>
+          <span id="note-help" class="sr-only">可在此輸入特殊需求或備註事項</span>
+        </div>
+      </div>
+
+      <!-- 訂單預覽 + 總計（多欄佈局） -->
+      <div class="summary-grid">
+        
+        <!-- 訂單預覽 -->
+        <div class="card" role="region" aria-labelledby="preview-title">
+          <h2 class="section-title" id="preview-title"><span aria-hidden="true">📋</span> 訂單預覽</h2>
+          <div class="preview-box" id="preview" role="status" aria-live="polite" aria-atomic="true">
+            <div class="preview-empty">尚未選擇商品</div>
+          </div>
+        </div>
+
+        <!-- 總計與按鈕 -->
+        <div class="card" role="region" aria-labelledby="total-title">
+          <div class="total-section">
+            <div class="total-row">
+              <span class="total-label" id="total-title">訂單總額</span>
+              <span class="total-amount" id="totalAmt" role="status" aria-live="polite" aria-atomic="true">$0</span>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button 
+              type="button" 
+              class="btn-ghost" 
+              id="resetBtn"
+              aria-label="清空所有選項重新填寫"
+            >清空重填</button>
+            <button 
+              type="submit" 
+              class="btn-primary"
+              aria-label="送出訂單到系統"
+            ><span aria-hidden="true">✓</span> 送出訂單</button>
+          </div>
+
+          <div id="result" role="status" aria-live="assertive" aria-atomic="true"></div>
+        </div>
+
+      </div>
+
+    </form>
+  </main>
+
+  <!-- 圖片放大模態框 -->
+  <div 
+    class="modal" 
+    id="imageModal" 
+    role="dialog" 
+    aria-modal="true" 
+    aria-labelledby="modalImageLabel"
+    aria-describedby="modalImageDesc"
+    tabindex="-1"
+  >
+    <img 
+      src="" 
+      alt=""
+      class="modal-content"
+      id="modalImage"
+    />
+    <span id="modalImageLabel" class="sr-only">圖片放大檢視</span>
+    <span id="modalImageDesc" class="sr-only">點擊任意處關閉，或按 ESC 鍵退出</span>
+  </div>
+
+  <script>
+    // === 價格設定 ===
+    const PRICE = {
+      main: 150,
+      side: 30
+    };
+
+    // === 商品項目（含圖片） ===
+    // 主餐列表（從後端動態載入）
+    let MAIN_ITEMS = [];
+    
+    // 降級方案：預設主餐列表
+    const DEFAULT_MAIN_ITEMS = [
+      { name: "鹽水半雞", img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=400&fit=crop&q=80" },
+      { name: "煙燻半雞", img: "https://images.unsplash.com/photo-1594221708779-94832f4320d1?w=400&h=400&fit=crop&q=80" },
+      { name: "油雞腿", img: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400&h=400&fit=crop&q=80" },
+      { name: "油雞胸", img: "https://images.unsplash.com/photo-1633237308525-cd587cf71926?w=400&h=400&fit=crop&q=80" }
+    ];
+    
+    // 庫存狀態（從後端動態載入）
+    let INVENTORY = {};
+    
+    // 配菜分類（從後端動態載入）
+    let SIDE_CATEGORIES = {};
+    
+    // 當前選擇的場地（記住用戶選擇）
+    let CURRENT_VENUE = null;
+    
+    // 🚀 場地資料快取（避免重複載入）
+    const VENUE_CACHE = {};
+    const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 快取有效期：5分鐘
+    
+    // 🚀 檢查快取是否過期
+    function isCacheValid(cacheData) {
+      if (!cacheData || !cacheData.timestamp) return false;
+      const now = Date.now();
+      return (now - cacheData.timestamp) < CACHE_EXPIRY_TIME;
+    }
+    
+    // 🚀 工具函数：防抖（避免频繁计算）
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+    
+    // 🚀 計算函數（稍後定義完整邏輯）
+    let recalc = () => {};
+    let debouncedRecalc = () => {};
+    
+    // 降級方案：如果後端無法載入，使用預設配菜列表
+    const DEFAULT_SIDE_ITEMS = {
+      "葉菜類": [
+        { name: "花椰菜" },
+        { name: "龍鬚菜" },
+        { name: "高麗菜" },
+        { name: "娃娃菜" }
+      ],
+      "瓜類": [
+        { name: "綠苦瓜" },
+        { name: "小黃瓜" }
+      ],
+      "菇類": [
+        { name: "金針菇" },
+        { name: "杏鮑菇" },
+        { name: "鮮香菇" },
+        { name: "黑木耳" }
+      ],
+      "根莖類": [
+        { name: "玉米筍" },
+        { name: "筍白筍" },
+        { name: "白蘿蔔" },
+        { name: "紅蘿蔔" },
+        { name: "洋蔥" },
+        { name: "蓮藕" },
+        { name: "脆筍片" }
+      ],
+      "豆製品": [
+        { name: "豆皮" },
+        { name: "百頁豆腐" },
+        { name: "小豆干" }
+      ],
+      "其他": [
+        { name: "四季豆" },
+        { name: "海帶根" },
+        { name: "皮蛋" },
+        { name: "鵪鶉蛋" },
+        { name: "雞皮" },
+        { name: "雞冠" },
+        { name: "雞蛋黃" },
+        { name: "雞蛋腸" }
+      ]
+    };
+
+    // ============================================
+    // 🔐 授權設定（公開測試版 - 無需授權）
+    // ============================================
+    const WEBSITE_ID = "PUBLIC_TEST"; // 公開測試版專用ID
+    const AUTH_API = ""; // 公開測試版不使用授權系統
+    
+    // Google Apps Script URL（公開測試版訂單系統）
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwTXfms59luO7HbhR2KkNVGch2lSXJdi8GtaQt9TOsdJPL7jfafJqEcrU1mxm4bA6phmg/exec"; // 公開測試版後端連結（已測試支援多場地）
+
+    // ====== 授權檢查 ======
+    async function checkAuthorization() {
+      try {
+        // 如果沒有設定授權 API，跳過檢查（開發模式）
+        if (!AUTH_API || AUTH_API === 'YOUR_AUTH_API_URL_HERE') {
+          console.log('⚠️ 未設定授權API，跳過授權檢查');
+          return { authorized: true };
+        }
+        
+        const res = await fetch(`${AUTH_API}?action=checkAuth&websiteId=${WEBSITE_ID}`);
+        const data = await res.json();
+        
+        if (!data.ok) {
+          console.error('授權檢查失敗:', data.msg);
+          return { authorized: false, msg: data.msg };
+        }
+        
+        return data;
+      } catch (err) {
+        console.error('授權檢查錯誤:', err);
+        // 網路錯誤時允許繼續使用（避免誤鎖）
+        return { authorized: true };
+      }
+    }
+    
+    // ====== 顯示授權失效頁面 ======
+    function showAuthExpiredPage(authData) {
+      document.body.innerHTML = `
+        <style>
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+          }
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+          .auth-container {
+            animation: fadeIn 0.5s ease-out;
+          }
+          .lock-icon {
+            animation: float 3s ease-in-out infinite;
+          }
+          .cta-button {
+            animation: pulse 2s ease-in-out infinite;
+          }
+        </style>
+        <div style="
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #fef9f3 0%, #faf5ed 100%);
+          padding: 20px;
+          position: relative;
+          overflow: hidden;
+        ">
+          <!-- 背景裝飾 -->
+          <div style="
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(217,119,6,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+          "></div>
+          <div style="
+            position: absolute;
+            bottom: -150px;
+            left: -150px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+          "></div>
+          
+          <!-- 主卡片 -->
+          <div class="auth-container" style="
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 32px 28px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.15);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+          ">
+            <!-- 鎖圖標 -->
+            <div class="lock-icon" style="
+              width: 70px;
+              height: 70px;
+              margin: 0 auto 16px;
+              background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 36px;
+              box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2);
+            ">🔒</div>
+            
+            <!-- 狀態標籤 -->
+            <div style="
+              display: inline-block;
+              background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+              color: white;
+              padding: 4px 12px;
+              border-radius: 16px;
+              font-size: 12px;
+              font-weight: 600;
+              margin-bottom: 12px;
+              box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            ">
+              ${authData.reason === 'expired' ? '📅 已到期' : '⛔ 已停用'}
+            </div>
+            
+            <!-- 標題 -->
+            <h1 style="
+              font-size: 22px;
+              font-weight: 800;
+              background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              margin-bottom: 8px;
+              line-height: 1.3;
+            ">授權已${authData.reason === 'expired' ? '到期' : '停用'}</h1>
+            
+            <!-- 商家資訊 -->
+            ${authData.businessName ? `
+              <p style="
+                font-size: 15px;
+                color: #4b5563;
+                font-weight: 600;
+                margin-bottom: 16px;
+              ">
+                🏪 ${authData.businessName}
+              </p>
+            ` : ''}
+            
+            <!-- 詳細資訊卡片 -->
+            <div style="
+              background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+              border-radius: 12px;
+              padding: 14px;
+              margin: 16px 0;
+              text-align: left;
+            ">
+              ${authData.plan ? `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  margin-bottom: 8px;
+                  padding-bottom: 8px;
+                  border-bottom: 1px solid #e5e7eb;
+                ">
+                  <span style="color: #9ca3af; font-size: 13px; min-width: 75px;">訂閱方案</span>
+                  <span style="color: #1f2937; font-weight: 600; font-size: 14px;">${authData.plan}</span>
+                </div>
+              ` : ''}
+              ${authData.expireDate ? `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                ">
+                  <span style="color: #9ca3af; font-size: 13px; min-width: 75px;">到期日期</span>
+                  <span style="color: #ef4444; font-weight: 600; font-size: 14px;">${authData.expireDate}</span>
+                </div>
+              ` : ''}
+            </div>
+            
+            <!-- 提示訊息 -->
+            <div style="
+              background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+              border: 2px solid #fbbf24;
+              border-radius: 12px;
+              padding: 16px;
+              margin: 16px 0;
+              box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+            ">
+              <p style="
+                font-size: 14px;
+                color: #92400e;
+                line-height: 1.6;
+                margin: 0;
+                font-weight: 500;
+              ">
+                ${authData.plan === '試用期' 
+                  ? '🎁 試用期已結束，感謝您的試用！<br/>如需繼續使用，請聯繫客服選擇付費方案。' 
+                  : `💡 您的訂閱已${authData.reason === 'expired' ? '到期' : '停用'}，<br/>請聯繫客服進行續費。`
+                }
+              </p>
+            </div>
+            
+            <!-- CTA 按鈕 -->
+            <a 
+              href="https://lin.ee/YyXagFg" 
+              target="_blank"
+              class="cta-button"
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+                color: white;
+                padding: 13px 32px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: 700;
+                font-size: 15px;
+                box-shadow: 0 6px 20px rgba(217,119,6,.4);
+                transition: all .3s ease;
+                margin-top: 4px;
+              "
+              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(217,119,6,.5)'"
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(217,119,6,.4)'"
+            >
+              ${authData.plan === '試用期' ? '💳 選擇付費方案' : '📞 聯繫客服續費'}
+            </a>
+            
+            <!-- 次要按鈕 -->
+            <div style="margin-top: 12px;">
+              <a 
+                href="javascript:location.reload()" 
+                style="
+                  display: inline-block;
+                  color: #6b7280;
+                  font-size: 13px;
+                  text-decoration: none;
+                  padding: 6px 14px;
+                  border-radius: 6px;
+                  transition: all .2s ease;
+                "
+                onmouseover="this.style.color='#d97706'; this.style.background='#fef3c7'"
+                onmouseout="this.style.color='#6b7280'; this.style.background='transparent'"
+              >
+                🔄 重新整理
+              </a>
+            </div>
+            
+            <!-- 底部資訊 -->
+            <div style="
+              margin-top: 20px;
+              padding-top: 16px;
+              border-top: 1px solid #e5e7eb;
+            ">
+              <p style="
+                font-size: 11px;
+                color: #9ca3af;
+                margin: 0;
+              ">
+                網站ID: <code style="
+                  background: #f3f4f6;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  color: #6b7280;
+                  font-family: monospace;
+                  font-size: 10px;
+                ">${WEBSITE_ID}</code>
+              </p>
+              <p style="
+                font-size: 10px;
+                color: #d1d5db;
+                margin: 6px 0 0;
+              ">
+                © 2025 快閃餐車小幫手 · 授權管理系統
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // ====== 顯示即將到期警告 ======
+    function showExpiryWarning(daysLeft, expireDate, authData) {
+      const isTrial = authData.isTrial || false;
+      const plan = authData.plan || '';
+      
+      const warningBanner = document.createElement('div');
+      
+      // 試用期和付費方案使用不同顏色
+      const bgColor = isTrial 
+        ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
+        : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+      const textColor = isTrial ? '#fff' : '#78350f';
+      
+      warningBanner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: ${bgColor};
+        color: ${textColor};
+        padding: 12px 20px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+      `;
+      
+      // 根據訂閱方案顯示不同訊息
+      let message = '';
+      if (isTrial) {
+        message = `🎁 試用期即將結束（剩餘 ${daysLeft} 天，${expireDate}），請聯繫客服選擇付費方案`;
+      } else {
+        message = `⚠️ ${plan} 即將到期（剩餘 ${daysLeft} 天，${expireDate}），請盡快續費以免影響使用`;
+      }
+      
+      warningBanner.innerHTML = message;
+      document.body.insertBefore(warningBanner, document.body.firstChild);
+      
+      // 調整 header 位置避免被遮擋
+      const header = document.querySelector('.brand-header');
+      if (header) {
+        header.style.marginTop = '44px';
+      }
+    }
+
+    // ====== 載入庫存狀態 ======
+    async function loadInventory(venue) {
+      try {
+        // 如果沒有指定場地，使用當前選擇的場地
+        const targetVenue = venue || CURRENT_VENUE;
+        
+        // 構建 API 網址（如果有場地就加上場地參數）
+        let apiUrl = `${GAS_ENDPOINT}?action=getInventory`;
+        if (targetVenue) {
+          apiUrl += `&venue=${targetVenue}`;
+        }
+        
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        
+        if (data.ok) {
+          INVENTORY = data.inventory;
+          SIDE_CATEGORIES = data.categories || {}; // 載入配菜分類
+          console.log('✅ 庫存已載入:', INVENTORY);
+          console.log('✅ 配菜分類已載入:', SIDE_CATEGORIES);
+          
+          // 如果從後端載入了主餐數據，重新生成主餐列表
+          if (data.mainItems && data.mainItems.length > 0) {
+            MAIN_ITEMS = data.mainItems;
+            console.log('✅ 主餐列表已載入:', MAIN_ITEMS);
+            console.log('🔄 使用後端主餐列表，重新生成主餐卡片');
+            generateMainItems(MAIN_ITEMS);
+          }
+          
+          // 如果從後端載入了分類數據，重新生成配菜列表
+          if (Object.keys(SIDE_CATEGORIES).length > 0) {
+            console.log('🔄 使用後端配菜分類，重新生成配菜列表');
+            regenerateSideItems();
+          }
+          
+          // 更新商品卡片的缺貨狀態
+          updateStockStatus(true); // 強制更新（頁面初始化載入）
+        }
+      } catch (err) {
+        console.warn('⚠️ 無法載入庫存，使用預設設定:', err);
+        // 如果無法連線，使用降級方案
+        SIDE_CATEGORIES = DEFAULT_SIDE_ITEMS;
+      }
+    }
+
+    // ====== 載入系統設定（時間、取餐方式等） ======
+    async function loadConfig() {
+      try {
+        const res = await fetch(`${GAS_ENDPOINT}?action=getConfig`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          console.log('系統設定已載入:', data);
+          
+          // 動態生成取餐時間選項
+          if (data.timeOptions) {
+            updateTimeOptions(data.timeOptions.hours, data.timeOptions.minutes);
+          }
+          
+          // 動態生成取餐方式選項
+          if (data.methodOptions) {
+            updateMethodOptions(data.methodOptions);
+          }
+          
+          // 動態生成場地選項
+          if (data.venueOptions) {
+            updateVenueOptions(data.venueOptions);
+          }
+        }
+      } catch (err) {
+        console.warn('無法載入系統設定，使用預設選項:', err);
+      }
+    }
+    
+    // 🚀 預載入所有場地資料（讓切換秒開）
+    async function preloadAllVenues(venues) {
+      console.log('🚀 開始預載入所有場地資料...');
+      const activeVenues = venues.filter(v => v.status !== '暫停');
+      
+      // 並行載入所有場地的資料
+      const preloadPromises = activeVenues.map(async (venue) => {
+        try {
+          const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${venue.code}`);
+          const data = await res.json();
+          
+          if (data.ok) {
+            // 儲存到快取
+            VENUE_CACHE[venue.code] = {
+              inventory: data.inventory,
+              categories: data.categories,
+              mainItems: data.mainItems,
+              timestamp: Date.now()
+            };
+            console.log(`✅ 預載入完成：${venue.name}`);
+          }
+        } catch (err) {
+          console.warn(`⚠️ 預載入失敗：${venue.name}`, err);
+        }
+      });
+      
+      await Promise.allSettled(preloadPromises);
+      console.log('🎉 所有場地預載入完成！');
+    }
+    
+    // 更新場地選項
+    function updateVenueOptions(venues) {
+      const venueSelect = document.getElementById('venueSelect');
+      
+      // 清空現有選項（保留第一個提示）
+      venueSelect.innerHTML = '<option value="">請選擇取餐場地...</option>';
+      
+      // 只添加營業中的場地選項（隱藏暫停的場地）
+      venues.forEach(venue => {
+        // 跳過暫停營業的場地
+        if (venue.status === '暫停') {
+          console.log(`⏭️ 跳過暫停場地：${venue.name}`);
+          return; // 不顯示在下拉選單中
+        }
+        
+        const option = document.createElement('option');
+        option.value = venue.code;
+        // 添加表情符號
+        const emoji = '📍';
+        option.textContent = `${emoji} ${venue.name}`;
+        
+        venueSelect.appendChild(option);
+      });
+      
+      // 🚀 預載入所有場地資料（背景執行，不阻塞 UI）
+      setTimeout(() => {
+        preloadAllVenues(venues);
+      }, 500); // 延遲 500ms，讓頁面先完成載入
+      
+      // 監聽場地選擇變更事件
+      venueSelect.addEventListener('change', async function() {
+        const selectedVenue = this.value;
+        
+        if (selectedVenue) {
+          console.log(`🔄 切換到場地：${selectedVenue}`);
+          
+          // 如果之前已經選過場地，清空購物車
+          if (CURRENT_VENUE && CURRENT_VENUE !== selectedVenue) {
+            // 重置所有數量輸入（實時獲取，包含動態生成的主餐）
+            document.querySelectorAll('.qty').forEach(q => {
+              q.value = 0;
+              q.setAttribute('value', '0');
+            });
+            recalc();
+            console.log('🧹 購物車已清空（切換場地）');
+          }
+          
+          // 記住當前選擇的場地
+          CURRENT_VENUE = selectedVenue;
+          
+          // 🚀 檢查快取：如果已經載入過這個場地，先使用快取（秒開）
+          if (VENUE_CACHE[selectedVenue]) {
+            console.log('⚡ 使用快取資料（秒速載入）');
+            const cachedData = VENUE_CACHE[selectedVenue];
+            
+            // 使用快取的資料立即顯示
+            INVENTORY = cachedData.inventory;
+            SIDE_CATEGORIES = cachedData.categories || {};
+            MAIN_ITEMS = cachedData.mainItems || MAIN_ITEMS;
+            
+            // 快速更新介面
+            if (cachedData.mainItems && cachedData.mainItems.length > 0) {
+              generateMainItems(cachedData.mainItems);
+            }
+            if (Object.keys(SIDE_CATEGORIES).length > 0) {
+              regenerateSideItems();
+            }
+            updateStockStatus(true);
+            
+            // 更新當前場地顯示
+            const currentVenueDisplay = document.getElementById('currentVenueDisplay');
+            const currentVenueName = document.getElementById('currentVenueName');
+            if (currentVenueDisplay && currentVenueName) {
+              const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+              const venueName = selectedOption.textContent.replace('📍 ', '').trim();
+              currentVenueName.textContent = venueName;
+              currentVenueDisplay.style.display = 'block';
+            }
+            
+            // 顯示快速提示
+            const quickMsg = document.createElement('div');
+            quickMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600;';
+            quickMsg.textContent = '⚡ 場地已切換';
+            document.body.appendChild(quickMsg);
+            setTimeout(() => {
+              if (document.body.contains(quickMsg)) {
+                document.body.removeChild(quickMsg);
+              }
+            }, 1500);
+            
+            // 🚀 智能刷新：背景靜默更新庫存（不阻塞用戶操作）
+            setTimeout(async () => {
+              try {
+                console.log(`🔄 背景刷新場地庫存：${selectedVenue}`);
+                const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}&_t=${Date.now()}`);
+                const data = await res.json();
+                
+                if (data.ok && CURRENT_VENUE === selectedVenue) {
+                  // 更新快取
+                  VENUE_CACHE[selectedVenue] = {
+                    inventory: data.inventory,
+                    categories: data.categories,
+                    mainItems: data.mainItems,
+                    timestamp: Date.now()
+                  };
+                  
+                  // 靜默更新庫存數據
+                  INVENTORY = data.inventory;
+                  updateStockStatus(true);
+                  console.log('✅ 背景刷新完成');
+                }
+              } catch (err) {
+                console.warn('⚠️ 背景刷新失敗:', err);
+              }
+            }, 100); // 延遲100ms，讓用戶先看到快取數據
+            
+            return; // 不需要顯示載入畫面
+          }
+          
+          // 如果沒有快取，顯示載入提示
+          const loadingMsg = document.createElement('div');
+          loadingMsg.id = 'venueLoadingMsg';
+          loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:#fff; padding:20px 40px; border-radius:10px; z-index:9999; font-size:16px; font-weight:600;';
+          loadingMsg.textContent = '🔄 載入場地資料中...';
+          document.body.appendChild(loadingMsg);
+          
+          try {
+            // 🚀 檢查網路狀態
+            if (!navigator.onLine) {
+              document.body.removeChild(loadingMsg);
+              alert('⚠️ 網路已斷線，無法載入場地資料');
+              return;
+            }
+            
+            // 從服務器載入該場地的庫存
+            const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}`);
+            const data = await res.json();
+            
+            if (data.ok) {
+              INVENTORY = data.inventory;
+              SIDE_CATEGORIES = data.categories || {};
+              
+              console.log('✅ 場地庫存已載入:', INVENTORY);
+              console.log('✅ 場地配菜分類已載入:', SIDE_CATEGORIES);
+              
+              // 重新生成主餐列表
+              if (data.mainItems && data.mainItems.length > 0) {
+                MAIN_ITEMS = data.mainItems;
+                console.log('✅ 場地主餐列表已載入:', MAIN_ITEMS);
+                generateMainItems(MAIN_ITEMS);
+              }
+              
+              // 重新生成配菜列表
+              if (Object.keys(SIDE_CATEGORIES).length > 0) {
+                regenerateSideItems();
+              }
+              
+              // 更新商品卡片的缺貨狀態
+              updateStockStatus(true); // 強制更新（首次載入）
+              
+              // 🚀 儲存到快取（下次切換就會秒開）
+              VENUE_CACHE[selectedVenue] = {
+                inventory: data.inventory,
+                categories: data.categories,
+                mainItems: data.mainItems,
+                timestamp: Date.now()
+              };
+              console.log(`💾 場地資料已快取：${selectedVenue}`);
+              
+              // 移除載入提示
+              document.body.removeChild(loadingMsg);
+              
+              // 更新當前場地顯示
+              const currentVenueDisplay = document.getElementById('currentVenueDisplay');
+              const currentVenueName = document.getElementById('currentVenueName');
+              if (currentVenueDisplay && currentVenueName) {
+                // 從 select 選項中獲取場地名稱
+                const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+                const venueName = selectedOption.textContent.replace('📍 ', '').trim();
+                
+                currentVenueName.textContent = venueName;
+                currentVenueDisplay.style.display = 'block';
+              }
+              
+              // 顯示成功提示
+              const successMsg = document.createElement('div');
+              successMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600; animation: slideIn 0.3s ease;';
+              successMsg.textContent = `✅ 場地資料已更新`;
+              document.body.appendChild(successMsg);
+              
+              setTimeout(() => {
+                if (document.body.contains(successMsg)) {
+                  document.body.removeChild(successMsg);
+                }
+              }, 2000);
+              
+            } else {
+              document.body.removeChild(loadingMsg);
+              alert('❌ 載入場地資料失敗：' + data.msg);
+            }
+          } catch (err) {
+            document.body.removeChild(loadingMsg);
+            console.error('載入場地資料錯誤:', err);
+            alert('❌ 載入場地資料失敗，請重新整理頁面');
+          }
+        }
+      });
+      
+      console.log('✅ 場地選項已更新');
+    }
+
+    // 更新取餐時間選項
+    function updateTimeOptions(hours, minutes) {
+      const etaHour = document.getElementById('etaHour');
+      const etaMinute = document.getElementById('etaMinute');
+      
+      // 清空現有選項（保留第一個"時"/"分"）
+      etaHour.innerHTML = '<option value="">時</option>';
+      etaMinute.innerHTML = '<option value="">分</option>';
+      
+      // 添加小時選項
+      hours.forEach(h => {
+        const option = document.createElement('option');
+        option.value = h;
+        option.textContent = `${h} 點`;
+        etaHour.appendChild(option);
+      });
+      
+      // 添加分鐘選項
+      minutes.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m;
+        option.textContent = `${m} 分`;
+        etaMinute.appendChild(option);
+      });
+      
+      console.log('✅ 取餐時間選項已更新');
+    }
+
+    // 更新取餐方式選項
+    function updateMethodOptions(methods) {
+      const methodSelect = document.querySelector('select[name="method"]');
+      
+      // 清空現有選項
+      methodSelect.innerHTML = '';
+      
+      // 添加新選項
+      methods.forEach(method => {
+        const option = document.createElement('option');
+        option.value = method;
+        // 添加表情符號
+        const emoji = method.includes('自取') ? '🚶' : method.includes('代取') ? '👥' : method.includes('外送') ? '🛵' : '📦';
+        option.textContent = `${emoji} ${method}`;
+        methodSelect.appendChild(option);
+      });
+      
+      console.log('✅ 取餐方式選項已更新');
+    }
+
+    // ====== 更新商品的缺貨狀態和庫存顯示 ======
+    function updateStockStatus(forceUpdate = false) {
+      // 🔧 iOS 修復：保存當前焦點元素和滾動位置
+      const activeElement = document.activeElement;
+      const scrollY = window.scrollY;
+      const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT' || activeElement.tagName === 'TEXTAREA');
+      
+      // 如果用户正在输入，跳过本次更新（除非强制更新）
+      if (isInputFocused && !forceUpdate) {
+        console.log('⏭️ 用户正在输入，跳过本次库存更新');
+        return;
+      }
+      
+      // 更新主餐的缺貨狀態和庫存
+      document.querySelectorAll('#mains .product-card').forEach(card => {
+        const input = card.querySelector('input.qty');
+        const itemName = input?.dataset.name;
+        const stockEl = card.querySelector('.product-stock');
+        
+        if (itemName && INVENTORY[itemName]) {
+          const stock = INVENTORY[itemName];
+          
+          // 🔧 只更新文本内容，不重建 DOM（避免失焦）
+          if (stockEl) {
+            const current = stock.stock || 0;
+            const initial = stock.initialStock || 0;
+            const stockColor = current === 0 ? 'var(--danger)' : (current <= initial * 0.3 ? 'var(--accent)' : 'var(--success)');
+            const newHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
+            // 只在内容真的改变时才更新
+            if (stockEl.innerHTML !== newHTML) {
+              stockEl.innerHTML = newHTML;
+            }
+          }
+          
+          if (!stock.available || stock.stock <= 0) {
+            // 標記為缺貨
+            card.classList.add('out-of-stock');
+            
+            // 禁用輸入和按鈕
+            card.querySelectorAll('input, button, select').forEach(el => {
+              el.disabled = true;
+            });
+            
+            // 添加缺貨標籤（如果還沒有）
+            if (!card.querySelector('.out-of-stock-badge')) {
+              const badge = document.createElement('div');
+              badge.className = 'out-of-stock-badge';
+              badge.textContent = '缺貨中';
+              card.insertBefore(badge, card.firstChild);
+            }
+          } else {
+            // 移除缺貨標記
+            card.classList.remove('out-of-stock');
+            card.querySelectorAll('input, button, select').forEach(el => {
+              el.disabled = false;
+            });
+            const badge = card.querySelector('.out-of-stock-badge');
+            if (badge) badge.remove();
+          }
+        }
+      });
+      
+      // 更新單點配菜的缺貨狀態和庫存
+      document.querySelectorAll('#sides .side-item').forEach(item => {
+        const input = item.querySelector('input.qty');
+        const itemName = input?.dataset.name;
+        const stockEl = item.querySelector('.side-stock');
+        
+        if (itemName && INVENTORY[itemName]) {
+          const stock = INVENTORY[itemName];
+          
+          // 🔧 只更新文本内容，不重建 DOM（避免失焦）
+          if (stockEl) {
+            const current = stock.stock || 0;
+            const initial = stock.initialStock || 0;
+            const stockColor = current === 0 ? 'var(--danger)' : (current <= initial * 0.3 ? 'var(--accent)' : 'var(--success)');
+            const newHTML = `庫存 <span style="color:${stockColor}; font-weight:600;">(${current}/${initial})</span>`;
+            // 只在内容真的改变时才更新
+            if (stockEl.innerHTML !== newHTML) {
+              stockEl.innerHTML = newHTML;
+            }
+          }
+          
+          if (!stock.available || stock.stock <= 0) {
+            item.style.opacity = '0.5';
+            item.querySelectorAll('input, button').forEach(el => {
+              el.disabled = true;
+            });
+          } else {
+            item.style.opacity = '1';
+            item.querySelectorAll('input, button').forEach(el => {
+              el.disabled = false;
+            });
+          }
+        }
+      });
+      
+      // 🔧 iOS 修復：恢復滾動位置（防止页面弹回）
+      if (window.scrollY !== scrollY) {
+        window.scrollTo(0, scrollY);
+      }
+    }
+
+    // ====== 產生主餐卡片（動態生成） ======
+    const mainsBox = document.querySelector('#mains');
+    
+    // 生成主餐列表
+    function generateMainItems(items) {
+      // 清空現有主餐列表
+      mainsBox.innerHTML = '';
+      
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('aria-label', `${item.name}，每份${PRICE.main}元`);
+        
+        // 使用 Sheet 中的圖片網址，如果沒有則使用預設
+        const imageUrl = item.imageUrl || item.img || 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=400&fit=crop&q=80';
+        
+        card.innerHTML = `
+          <div class="product-image-wrap" data-image="${imageUrl.replace('w=400&h=400', 'w=800&h=800')}" data-name="${item.name}" role="button" tabindex="0" aria-label="點擊放大查看${item.name}圖片">
+            <img 
+              src="${imageUrl}" 
+              alt="${item.name} 商品圖片" 
+              class="product-image" 
+              loading="lazy"
+              onerror="this.src='https://via.placeholder.com/400x400/fef3c7/b45309?text=${encodeURIComponent(item.name)}'"
+            />
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
+            <div style="display:flex; align-items:center; gap:clamp(4px,1vw,6px); flex:1;">
+              <div class="product-name" style="margin-bottom:0;">${item.name}</div>
+              <div class="product-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;" role="status" aria-live="polite">載入中...</div>
+            </div>
+            <div class="product-price" style="margin-bottom:0;" aria-label="價格${PRICE.main}元">$${PRICE.main}</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:clamp(4px,1vw,6px);">
+            <div class="qty-control" role="group" aria-label="${item.name}數量控制">
+              <button type="button" class="qty-btn" data-action="decrease" data-target="${item.name}" aria-label="減少${item.name}數量">−</button>
+              <input 
+                type="number" 
+                min="0" 
+                max="99"
+                value="0" 
+                data-type="main" 
+                data-name="${item.name}" 
+                class="qty"
+                aria-label="${item.name}數量"
+                aria-valuemin="0"
+                aria-valuemax="99"
+                aria-valuenow="0"
+              />
+              <button type="button" class="qty-btn" data-action="increase" data-target="${item.name}" aria-label="增加${item.name}數量">+</button>
+            </div>
+            <select data-cut="${item.name}" style="width:100%; font-size:clamp(11px,2.5vw,12px);" aria-label="${item.name}去骨選項">
+              <option>去骨</option>
+              <option>保留骨頭</option>
+            </select>
+          </div>
+        `;
+        mainsBox.appendChild(card);
+      });
+      
+      // 🚀 不需要重新綁定事件（使用事件委託統一處理）
+      // 事件委託已在下方設置，避免重複綁定造成記憶體洩漏
+    }
+    
+    // 初次載入使用預設主餐
+    generateMainItems(DEFAULT_MAIN_ITEMS);
+
+    const sidesBox = document.querySelector('#sides');
+    
+    // 生成配菜列表（初次載入使用預設配菜）
+    function generateSideItems(sideCategories) {
+      // 清空現有配菜列表
+      sidesBox.innerHTML = '';
+      
+      // 依分類生成單點配菜（可摺疊）
+      Object.keys(sideCategories).forEach((category, index) => {
+        const items = sideCategories[category];
+        const categoryId = `category-${category.replace(/\s+/g, '-')}`;
+        const contentId = `${categoryId}-content`;
+        
+        // 分類區塊容器
+        const categoryBlock = document.createElement('div');
+        categoryBlock.className = 'category-block';
+        
+        // 分類標題
+        const categoryTitle = document.createElement('div');
+        categoryTitle.className = 'category-title';
+        categoryTitle.setAttribute('role', 'button');
+        categoryTitle.setAttribute('tabindex', '0');
+        categoryTitle.setAttribute('aria-expanded', 'false');
+        categoryTitle.setAttribute('aria-controls', contentId);
+        categoryTitle.setAttribute('aria-label', `${category}分類，共${items.length}項，點擊展開或收合`);
+        categoryTitle.innerHTML = `
+          <span>${category} <small style="opacity:0.7">(${items.length}項)</small></span>
+          <span class="toggle-icon" aria-hidden="true">▼</span>
+        `;
+        categoryBlock.appendChild(categoryTitle);
+        
+        // 分類內容
+        const categoryContent = document.createElement('div');
+        categoryContent.className = 'category-content';
+        categoryContent.id = contentId;
+        categoryContent.setAttribute('role', 'region');
+        categoryContent.setAttribute('aria-labelledby', categoryId);
+        // 所有分類預設收合
+        
+        // 該分類的品項
+        items.forEach(item => {
+          const itemName = item.name || item;
+          const sideItem = document.createElement('div');
+          sideItem.className = 'side-item';
+          sideItem.setAttribute('role', 'listitem');
+          sideItem.setAttribute('aria-label', `${itemName}，每份${PRICE.side}元`);
+          sideItem.innerHTML = `
+            <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+              <div class="side-item-name">${itemName}</div>
+              <div class="side-stock" style="font-size:clamp(9px,2vw,10px); color:var(--muted); white-space:nowrap;" role="status" aria-live="polite">載入中...</div>
+            </div>
+            <div class="qty-control" role="group" aria-label="${itemName}數量控制">
+              <button type="button" class="qty-btn" data-action="decrease" data-target="${itemName}" aria-label="減少${itemName}數量">−</button>
+              <input 
+                type="number" 
+                min="0" 
+                max="99"
+                value="0" 
+                data-type="side" 
+                data-name="${itemName}" 
+                class="qty"
+                aria-label="${itemName}數量"
+                aria-valuemin="0"
+                aria-valuemax="99"
+                aria-valuenow="0"
+              />
+              <button type="button" class="qty-btn" data-action="increase" data-target="${itemName}" aria-label="增加${itemName}數量">+</button>
+            </div>
+          `;
+          categoryContent.appendChild(sideItem);
+        });
+        
+        categoryBlock.appendChild(categoryContent);
+        sidesBox.appendChild(categoryBlock);
+        
+        // 切換展開/收合的函數
+        const toggleCategory = () => {
+          const isExpanded = categoryTitle.classList.toggle('active');
+          categoryContent.classList.toggle('active');
+          categoryTitle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        };
+        
+        // 點擊標題切換展開/收合
+        categoryTitle.addEventListener('click', toggleCategory);
+        
+        // 🔐 鍵盤導航（Enter/Space）
+        categoryTitle.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleCategory();
+          }
+        });
+      });
+      
+      // 🚀 不需要重新綁定事件（使用事件委託統一處理）
+      // 事件委託已在下方設置，避免重複綁定造成記憶體洩漏
+    }
+    
+    // 初次載入使用預設配菜
+    generateSideItems(DEFAULT_SIDE_ITEMS);
+    
+    // 重新生成配菜列表（當從後端載入新數據時）
+    function regenerateSideItems() {
+      generateSideItems(SIDE_CATEGORIES);
+      // 注意：庫存狀態由外部調用 updateStockStatus(true) 來更新
+    }
+
+    // ====== 圖片點擊放大功能 ======
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    
+    // 🔐 焦點陷阱：記住打開模態框前的焦點元素
+    let lastFocusedElement = null;
+    
+    // 打開模態框函數
+    function openModal(imageSrc, imageAlt) {
+      lastFocusedElement = document.activeElement; // 記住當前焦點
+      modalImage.src = imageSrc;
+      modalImage.alt = imageAlt;
+      imageModal.classList.add('active');
+      
+      // 🔐 設置焦點到模態框
+      setTimeout(() => {
+        imageModal.focus();
+      }, 100);
+      
+      // 🔐 鎖定背景滾動
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // 關閉模態框函數
+    function closeModal() {
+      imageModal.classList.remove('active');
+      document.body.style.overflow = ''; // 恢復滾動
+      
+      // 🔐 恢復焦點到觸發元素
+      if (lastFocusedElement) {
+        lastFocusedElement.focus();
+      }
+    }
+    
+    // 品牌 Logo 點擊放大
+    const brandLogo = document.getElementById('brandLogo');
+    brandLogo.addEventListener('click', () => {
+      openModal(
+        "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800&h=800&fit=crop&q=80",
+        "極品鹽水雞 品牌標誌"
+      );
+    });
+    
+    // 🔐 品牌 Logo 鍵盤導航（Enter/Space）
+    brandLogo.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openModal(
+          "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800&h=800&fit=crop&q=80",
+          "極品鹽水雞 品牌標誌"
+        );
+      }
+    });
+    
+    // 商品圖片點擊放大（事件委派）
+    document.addEventListener('click', (e) => {
+      const menuImageWrap = e.target.closest('.menu-image-wrap');
+      const imageWrap = e.target.closest('.product-image-wrap');
+      
+      if (menuImageWrap) {
+        // 菜單圖片點擊放大
+        const largeImage = menuImageWrap.dataset.image;
+        const name = menuImageWrap.dataset.name;
+        openModal(largeImage, name);
+      } else if (imageWrap) {
+        const largeImage = imageWrap.dataset.image;
+        const name = imageWrap.dataset.name;
+        openModal(largeImage, name);
+      }
+    });
+    
+    // 🔐 菜單圖片鍵盤導航（Enter/Space）
+    document.addEventListener('keydown', (e) => {
+      const menuImageWrap = e.target.closest('.menu-image-wrap');
+      const imageWrap = e.target.closest('.product-image-wrap');
+      
+      if ((e.key === 'Enter' || e.key === ' ') && (menuImageWrap || imageWrap)) {
+        e.preventDefault();
+        if (menuImageWrap) {
+          const largeImage = menuImageWrap.dataset.image;
+          const name = menuImageWrap.dataset.name;
+          openModal(largeImage, name);
+        } else if (imageWrap) {
+          const largeImage = imageWrap.dataset.image;
+          const name = imageWrap.dataset.name;
+          openModal(largeImage, name);
+        }
+      }
+    });
+    
+    // 點擊模態框關閉
+    imageModal.addEventListener('click', () => {
+      closeModal();
+    });
+    
+    // 🔐 ESC 鍵關閉模態框
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && imageModal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+    
+    // 🔐 模態框焦點陷阱（Tab 鍵循環）
+    imageModal.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' && imageModal.classList.contains('active')) {
+        // 模態框內只有圖片本身可聚焦，直接保持焦點在模態框上
+        e.preventDefault();
+        imageModal.focus();
+      }
+    });
+
+    // ====== 取餐時間組合 ======
+    const etaHour = document.getElementById('etaHour');
+    const etaMinute = document.getElementById('etaMinute');
+    const etaCombined = document.getElementById('etaCombined');
+    
+    function updateEta() {
+      const hour = etaHour.value;
+      const minute = etaMinute.value;
+      if (hour && minute) {
+        etaCombined.value = `${hour}:${minute}`;
+      } else {
+        etaCombined.value = '';
+      }
+    }
+    
+    etaHour.addEventListener('change', updateEta);
+    etaMinute.addEventListener('change', updateEta);
+
+    // ====== 🚀 統一事件委託（所有輸入框） ======
+    // 監聽所有數量輸入變化（使用事件委託，避免重複綁定）
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('qty')) {
+        const newValue = e.target.value;
+        e.target.setAttribute('value', newValue);
+        // 🔐 更新 ARIA 屬性
+        e.target.setAttribute('aria-valuenow', newValue);
+        debouncedRecalc(); // 使用防抖版本
+      }
+    });
+    
+    // ====== 數量增減按鈕事件 ======
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.qty-btn');
+      if (!btn) return;
+      
+      const action = btn.dataset.action;
+      const targetName = btn.dataset.target;
+      const input = document.querySelector(`input[data-name="${targetName}"]`);
+      
+      if (!input) return;
+      
+      let currentValue = parseInt(input.value) || 0;
+      
+      if (action === 'increase' && currentValue < 99) {
+        currentValue++;
+      } else if (action === 'decrease' && currentValue > 0) {
+        currentValue--;
+      }
+      
+      input.value = currentValue;
+      input.setAttribute('value', currentValue);
+      // 🔐 更新 ARIA 屬性
+      input.setAttribute('aria-valuenow', currentValue);
+      
+      // 按鈕點擊立即計算（不使用防抖）
+      recalc();
+    });
+
+    // ====== 即時計算與預覽 ======
+    const previewEl = document.querySelector('#preview');
+    const totalEl = document.querySelector('#totalAmt');
+    const form = document.querySelector('#orderForm');
+    const result = document.querySelector('#result');
+
+    // 定義實際的 recalc 函數
+    recalc = function() {
+      let items = [];
+      let total = 0;
+
+      // 每次計算時重新獲取所有 .qty 元素（支援動態生成的商品）
+      const qtyInputs = document.querySelectorAll('.qty');
+      
+      qtyInputs.forEach(q => {
+        const n = parseInt(q.value || '0', 10);
+        if (n > 0) {
+          const name = q.dataset.name;
+          const kind = q.dataset.type;
+          const price = (kind === 'main') ? PRICE.main : PRICE.side;
+          total += n * price;
+          items.push({name, qty: n, price, subtotal: n * price});
+        }
+      });
+
+      if (items.length === 0) {
+        previewEl.innerHTML = '<div class="preview-empty">尚未選擇商品</div>';
+      } else {
+        previewEl.innerHTML = items.map(item => `
+          <div class="preview-item">
+            <strong>${item.name}</strong> × ${item.qty} 
+            <span style="float:right;color:var(--primary)">$${item.subtotal}</span>
+          </div>
+        `).join('');
+      }
+
+      totalEl.textContent = `$${total}`;
+      return {items, total};
+    };
+
+    // 🚀 創建防抖版本（輸入時延迟150ms執行，避免頻繁計算）
+    debouncedRecalc = debounce(recalc, 150);
+
+    recalc();
+
+    // 🚀 離線/在線檢測
+    let isOnline = navigator.onLine;
+    
+    window.addEventListener('online', () => {
+      isOnline = true;
+      const onlineMsg = document.createElement('div');
+      onlineMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600;';
+      onlineMsg.textContent = '✅ 網路已連線';
+      document.body.appendChild(onlineMsg);
+      setTimeout(() => {
+        if (document.body.contains(onlineMsg)) {
+          document.body.removeChild(onlineMsg);
+        }
+      }, 3000);
+      console.log('✅ 網路已連線');
+    });
+    
+    window.addEventListener('offline', () => {
+      isOnline = false;
+      const offlineMsg = document.createElement('div');
+      offlineMsg.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#dc2626; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600; box-shadow:0 4px 12px rgba(220,38,38,0.3);';
+      offlineMsg.textContent = '⚠️ 網路已斷線，部分功能可能無法使用';
+      document.body.appendChild(offlineMsg);
+      console.warn('⚠️ 網路已斷線');
+    });
+
+    // ====== 頁面載入時初始化 ======
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 🔧 iOS 修復：阻止自動滾動和焦點跳動
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        console.log('🍎 偵測到 iOS 裝置，啟用穩定性優化');
+        
+        // 防止 iOS Safari 自動縮放
+        document.addEventListener('touchstart', function(e) {
+          if (e.touches.length > 1) {
+            e.preventDefault();
+          }
+        }, { passive: false });
+        
+        // 防止雙擊縮放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, false);
+      }
+      
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const countdownEl = document.getElementById('loadingCountdown');
+      const dotsEl = document.getElementById('loadingDots');
+      
+      // 倒數計時器（視覺效果）
+      let countdown = 3;
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdownEl) {
+          countdownEl.textContent = countdown;
+        }
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+      
+      // 點點點動畫
+      let dots = 0;
+      const dotsInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        if (dotsEl) {
+          dotsEl.textContent = '.'.repeat(dots || 1);
+        }
+      }, 400);
+      
+      try {
+        // 🚀 最速優化：所有請求並行執行（不互相等待）
+        const startTime = Date.now();
+        
+        const [authResult, configResult, inventoryResult] = await Promise.allSettled([
+          checkAuthorization(),
+          loadConfig(),
+          loadInventory()
+        ]);
+        
+        // 檢查授權結果
+        if (authResult.status === 'fulfilled' && !authResult.value.authorized) {
+          // 授權失效，顯示到期頁面
+          clearInterval(countdownInterval);
+          clearInterval(dotsInterval);
+          loadingOverlay.classList.add('hidden');
+          setTimeout(() => {
+            showAuthExpiredPage(authResult.value);
+          }, 300);
+          return; // 停止載入
+        }
+        
+        // 如果授權即將到期，顯示警告
+        if (authResult.status === 'fulfilled' && authResult.value.showWarning && authResult.value.daysLeft) {
+          showExpiryWarning(authResult.value.daysLeft, authResult.value.expireDate, authResult.value);
+        }
+        
+        // 🚀 確保至少顯示倒數動畫（視覺效果）
+        const elapsedTime = Date.now() - startTime;
+        const minDisplayTime = 2500; // 至少顯示 2.5 秒
+        
+        if (elapsedTime < minDisplayTime) {
+          await new Promise(resolve => setTimeout(resolve, minDisplayTime - elapsedTime));
+        }
+        
+        console.log('✅ 系統初始化完成');
+      } catch (err) {
+        console.warn('初始化時發生錯誤:', err);
+      } finally {
+        // 停止動畫
+        clearInterval(countdownInterval);
+        clearInterval(dotsInterval);
+        
+        // 隱藏載入提示
+        loadingOverlay.classList.add('hidden');
+        setTimeout(() => {
+          loadingOverlay.style.display = 'none';
+        }, 300);
+      }
+      
+      // ✅ 已移除自動刷新功能
+      // 原因：頁面載入時已是最新數據，自動刷新會造成 iOS 弹回問題且無實際需求
+      // 只在以下情況會更新庫存：
+      // 1. 頁面首次載入
+      // 2. 用戶切換取餐場地
+      console.log('✅ 庫存載入完成，不會自動刷新（避免干擾用戶操作）');
+    });
+
+    // ====== 刷新場地庫存按鈕 ======
+    document.addEventListener('click', async (e) => {
+      if (e.target.id === 'refreshVenueBtn') {
+        e.preventDefault();
+        
+        if (!CURRENT_VENUE) {
+          alert('⚠️ 請先選擇取餐場地');
+          return;
+        }
+        
+        // 清除該場地的快取
+        delete VENUE_CACHE[CURRENT_VENUE];
+        console.log(`🗑️ 已清除場地快取：${CURRENT_VENUE}`);
+        
+        // 顯示載入提示
+        const loadingMsg = document.createElement('div');
+        loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:#fff; padding:20px 40px; border-radius:10px; z-index:9999; font-size:16px; font-weight:600;';
+        loadingMsg.textContent = '🔄 刷新庫存中...';
+        document.body.appendChild(loadingMsg);
+        
+        try {
+          // 重新從服務器載入
+          const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${CURRENT_VENUE}&_t=${Date.now()}`);
+          const data = await res.json();
+          
+          if (data.ok) {
+            INVENTORY = data.inventory;
+            SIDE_CATEGORIES = data.categories || {};
+            
+            // 更新主餐列表
+            if (data.mainItems && data.mainItems.length > 0) {
+              MAIN_ITEMS = data.mainItems;
+              generateMainItems(MAIN_ITEMS);
+            }
+            
+            // 更新配菜列表
+            if (Object.keys(SIDE_CATEGORIES).length > 0) {
+              regenerateSideItems();
+            }
+            
+            // 更新庫存狀態
+            updateStockStatus(true); // 強制更新（手動刷新）
+            
+            // 重新儲存到快取
+            VENUE_CACHE[CURRENT_VENUE] = {
+              inventory: data.inventory,
+              categories: data.categories,
+              mainItems: data.mainItems,
+              timestamp: Date.now()
+            };
+            
+            document.body.removeChild(loadingMsg);
+            
+            // 顯示成功提示
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#059669; color:#fff; padding:12px 20px; border-radius:8px; z-index:9999; font-size:14px; font-weight:600;';
+            successMsg.textContent = '✅ 庫存已更新';
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+              if (document.body.contains(successMsg)) {
+                document.body.removeChild(successMsg);
+              }
+            }, 2000);
+            
+          } else {
+            document.body.removeChild(loadingMsg);
+            alert('❌ 刷新失敗：' + data.msg);
+          }
+        } catch (err) {
+          document.body.removeChild(loadingMsg);
+          console.error('刷新庫存錯誤:', err);
+          alert('❌ 刷新失敗，請重試');
+        }
+      }
+    });
+    
+    // ====== 清空按鈕 ======
+    document.querySelector('#resetBtn').addEventListener('click', () => {
+      if (confirm('確定要清空所有選項嗎？')) {
+        form.reset();
+        // 重置時間選擇
+        etaHour.value = '';
+        etaMinute.value = '';
+        etaCombined.value = '';
+        
+        // 重置數量輸入（實時獲取，包含動態生成的主餐和配菜）
+        document.querySelectorAll('.qty').forEach(q => {
+          q.value = 0;
+          q.setAttribute('value', '0');
+        });
+        recalc();
+        result.innerHTML = '';
+      }
+    });
+
+    // 🚀 防止重複提交的標誌
+    let isSubmitting = false;
+    
+    // ====== 表單送出 ======
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // 🚀 防止重複提交
+      if (isSubmitting) {
+        console.log('⏸️ 訂單提交中，請勿重複點擊');
+        return;
+      }
+      
+      const {items, total} = recalc();
+      
+      // 驗證場地（如果有場地選單）
+      const venueSelect = document.getElementById('venueSelect');
+      if (venueSelect && !form.venue.value) {
+        result.innerHTML = '<div class="message error">⚠️ 請選擇取餐場地</div>';
+        venueSelect.focus();
+        venueSelect.style.borderColor = '#dc2626';
+        setTimeout(() => {
+          venueSelect.style.borderColor = '';
+        }, 2000);
+        return;
+      }
+      
+      // 🚀 驗證姓名格式
+      const nameValue = form.name.value.trim();
+      if (!nameValue || nameValue.length < 2) {
+        result.innerHTML = '<div class="message error">⚠️ 請輸入有效的姓名（至少 2 個字）</div>';
+        form.name.focus();
+        return;
+      }
+      
+      // 🚀 驗證電話格式
+      const phoneValue = form.phone.value.trim();
+      if (!phoneValue || phoneValue.length < 3) {
+        result.innerHTML = '<div class="message error">⚠️ 請輸入有效的電話號碼</div>';
+        form.phone.focus();
+        return;
+      }
+      
+      // 驗證時間
+      if (!etaCombined.value) {
+        result.innerHTML = '<div class="message error">⚠️ 請選擇取餐時間</div>';
+        return;
+      }
+      
+      if (items.length === 0) {
+        result.innerHTML = '<div class="message error">⚠️ 請至少選擇 1 項商品</div>';
+        return;
+      }
+      
+      // 🚀 檢查網路狀態
+      if (!navigator.onLine) {
+        result.innerHTML = '<div class="message error">⚠️ 網路已斷線，無法送出訂單。請檢查網路連線後重試。</div>';
+        return;
+      }
+
+      // 收集口味選項
+      const tasteOptions = {
+        辣度: form.spicy.value,
+        鹹度: form.saltiness.value,
+        檸檬: form.lemon.value,
+        蒜泥: form.scallion.value
+      };
+
+      // 收集去骨選項
+      const cuts = {};
+      document.querySelectorAll('select[data-cut]').forEach(s => {
+        const qty = document.querySelector(`input[data-name="${s.dataset.cut}"]`).value;
+        if (parseInt(qty) > 0) {
+        cuts[s.dataset.cut] = s.value;
+        }
+      });
+
+      const itemsDetail = items.map(it => `${it.name} x${it.qty}`).join(' / ');
+      
+      // 格式化口味和去骨选项为字符串（簡化格式）
+      const tasteStr = Object.entries(tasteOptions).map(([k, v]) => v).join('、');
+      const cutStr = Object.entries(cuts).map(([k, v]) => `${k}:${v}`).join(', ');
+
+      // 生成格式化訂單摘要（用於顯示和儲存）
+      const nameParts = form.name.value.trim().split(/[\s\#]/);
+      const mainName = nameParts[0] || '';
+      const phone = form.phone.value.trim();
+      const last3Digits = phone.slice(-3);
+      const [hour, minute] = etaCombined.value.split(':');
+      const timeStr = `${hour}點${minute}分`;
+      
+      // 取得場地名稱（確保正確獲取，使用前面已宣告的 venueSelect）
+      let venueName = '未指定';
+      if (venueSelect && form.venue && form.venue.value) {
+        const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+        if (selectedOption && selectedOption.textContent) {
+          // 移除表情符號和多餘空格
+          venueName = selectedOption.textContent.replace(/📍\s*/g, '').trim();
+        }
+      }
+      
+      console.log('🏪 場地資訊 - 代碼:', form.venue ? form.venue.value : '無', '名稱:', venueName);
+      
+      // 格式化餐點（每行3個）
+      const itemLines = [];
+      for (let i = 0; i < items.length; i += 3) {
+        const lineItems = items.slice(i, i + 3).map(it => `${it.name} x${it.qty}`).join(' / ');
+        itemLines.push(lineItems);
+      }
+      const itemsText = itemLines.join('\n');
+      
+      // 格式化調味
+      const tasteText = Object.entries(tasteOptions).map(([k, v]) => `${k}：${v}`).join('\n');
+      
+      // 組合訂單摘要（包含場地名稱）
+      const orderSummary = `① 姓名.後三碼：${mainName}.${last3Digits}
+② 取餐場地：${venueName}
+③ 想預訂的時間：${timeStr}
+④ 想預訂的餐點：
+${itemsText}
+⑤ 想搭配的調味：
+${tasteText}
+金額：${total}`;
+
+      const payload = {
+        ts: new Date().toISOString(),
+        name: form.name.value.trim(),
+        phone: form.phone.value.trim(),
+        venue: form.venue ? form.venue.value : '', // 場地代碼
+        method: form.method.value,
+        eta: etaCombined.value,
+        itemsDetail,
+        total,
+        taste: tasteStr,
+        cut: cutStr,
+        note: form.note.value.trim(),
+        orderSummary: orderSummary,
+        source: 'web'
+      };
+
+      try {
+        // 🚀 設置提交中狀態，禁用送出按鈕
+        isSubmitting = true;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.style.opacity = '0.5';
+          submitBtn.style.cursor = 'not-allowed';
+        }
+        
+        result.innerHTML = '<div class="message">⏳ 送出中，請稍候...</div>';
+        
+        // 使用 FormData 格式（Google Apps Script 更相容）
+        const formData = new FormData();
+        Object.keys(payload).forEach(key => {
+          formData.append(key, payload[key]);
+        });
+        
+        const res = await fetch(GAS_ENDPOINT, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await res.json();
+        
+        if (data.ok) {
+          // 使用已生成的 orderSummary
+          result.innerHTML = `
+            <div class="message success">
+              ✅ 訂單已送出！<br/>
+              <strong>訂單編號：${data.orderNo}</strong><br/>
+              <small>請準時於今日 ${etaCombined.value} 取餐</small>
+            </div>
+            <div style="
+              margin-top: 12px;
+              padding: 14px;
+              background: #f9fafb;
+              border: 1.5px solid var(--border);
+              border-radius: clamp(8px, 2vw, 10px);
+              font-size: clamp(12px, 3vw, 13px);
+              line-height: 1.8;
+              white-space: pre-line;
+              font-family: monospace;
+              position: relative;
+            ">
+              <div style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid var(--border);
+              ">
+                <span style="
+                  font-weight: 600;
+                  color: var(--text);
+                  font-size: clamp(13px, 3.2vw, 14px);
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                ">您此次的訂單如下</span>
+                <button 
+                  type="button"
+                  onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent); this.textContent='✓ 已複製'; setTimeout(()=>this.textContent='📋 複製訂單', 2000)"
+                  style="
+                    padding: 4px 10px;
+                    background: var(--primary);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: clamp(10px, 2.5vw, 11px);
+                    cursor: pointer;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    white-space: nowrap;
+                  "
+                >📋 複製訂單</button>
+              </div>
+              <div>${orderSummary}</div>
+            </div>
+          `;
+          // 可選：自動滾動到訊息位置
+          result.scrollIntoView({behavior: 'smooth', block: 'center'});
+        } else {
+          // 顯示錯誤訊息
+          result.innerHTML = `<div class="message error">❌ 送出失敗：${data.msg || '未知錯誤'}</div>`;
+          
+          // 如果是庫存不足錯誤，自動將該商品數量歸零
+          if (data.msg && data.msg.includes('庫存不足')) {
+            // 提取商品名稱（例如：【綠苦瓜】）
+            const match = data.msg.match(/【(.+?)】/);
+            if (match) {
+              const itemName = match[1];
+              // 找到該商品的輸入框並歸零
+              const input = document.querySelector(`input[data-name="${itemName}"]`);
+              if (input) {
+                input.value = 0;
+                input.setAttribute('value', '0');
+                // 重新計算總金額
+                recalc();
+                // 在錯誤訊息中添加提示
+                result.innerHTML += `<div class="message" style="margin-top:8px; background:#fffbeb; color:var(--accent); border-color:var(--accent);">💡 已自動將「${itemName}」數量歸零，請重新調整訂單</div>`;
+              }
+            }
+          }
+          
+          // 滾動到錯誤訊息
+          result.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+      } catch (err) {
+        console.error('詳細錯誤:', err);
+        result.innerHTML = `<div class="message error">❌ 連線失敗：${err.message}<br/><small>請檢查網路或聯繫管理員</small></div>`;
+      } finally {
+        // 🚀 重置提交狀態，恢復送出按鈕
+        isSubmitting = false;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          submitBtn.style.cursor = 'pointer';
+        }
+      }
+    });
+  </script>
+
+  <!-- 底部版權信息 -->
+  <footer class="footer" role="contentinfo">
+    <div>
+      系統開發：<a href="https://lin.ee/YyXagFg" target="_blank" rel="noopener noreferrer" aria-label="前往快閃餐車小幫手 LINE 官方帳號">快閃餐車小幫手</a> <span aria-label="版權所有">©</span> 2025
+    </div>
+    <div class="footer-warning" role="note">
+      <span aria-hidden="true">⚠️</span> 本系統受著作權法保護，未經授權不得複製、修改或用於商業用途
+    </div>
+  </footer>
+</body>
+</html>
