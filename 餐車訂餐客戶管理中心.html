@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 餐車客戶管理中心 PRO</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #1a1a1a;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      color: #1a1a1a;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .header p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+    
+    .stat-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+    
+    .stat-card.success .stat-value { color: #059669; }
+    .stat-card.danger .stat-value { color: #dc2626; }
+    .stat-card.warning .stat-value { color: #f59e0b; }
+    .stat-card.primary .stat-value { color: #667eea; }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .search-box {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 15px;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+    }
+    
+    .search-box:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .client-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .client-table th {
+      background: #f9fafb;
+      padding: 12px 8px;
+      text-align: left;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    
+    .client-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+    }
+    
+    .client-table tr:hover {
+      background: #f9fafb;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .badge.active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .badge.inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .badge.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 0 2px;
+    }
+    
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-1px);
+    }
+    
+    .btn-success {
+      background: #059669;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #047857;
+    }
+    
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background: #d97706;
+    }
+    
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+    
+    .loading-icon {
+      font-size: 48px;
+      animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .alert {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    .alert.warning {
+      background: #fef3c7;
+      color: #92400e;
+      border: 2px solid #fbbf24;
+    }
+    
+    .alert.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #059669;
+    }
+    
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+      padding: 8px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .filter-tab:hover {
+      border-color: #667eea;
+    }
+    
+    .filter-tab.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .refresh-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .refresh-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    /* 彈窗樣式 */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .close-btn:hover {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #374151;
+    }
+    
+    .form-input, .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .modal-footer .btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 14px;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      z-index: 10000;
+      animation: slideInRight 0.3s ease;
+      max-width: 400px;
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .notification.success {
+      background: #059669;
+      color: white;
+    }
+    
+    .notification.error {
+      background: #dc2626;
+      color: white;
+    }
+    
+    @media (max-width: 768px) {
+      .client-table {
+        font-size: 11px;
+      }
+      
+      .client-table th,
+      .client-table td {
+        padding: 6px 4px;
+      }
+      
+      .btn {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>📊 餐車客戶管理中心 PRO</h1>
+    <p>完整控制 · 即時操作 · 效率管理</p>
+  </div>
+  
+  <!-- 統計卡片 -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card primary" onclick="filterClients('all')">
+      <div class="stat-icon">👥</div>
+      <div class="stat-label">總客戶數</div>
+      <div class="stat-value" id="totalClients">-</div>
+    </div>
+    
+    <div class="stat-card success" onclick="filterClients('active')">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">啟用中</div>
+      <div class="stat-value" id="activeClients">-</div>
+    </div>
+    
+    <div class="stat-card danger" onclick="filterClients('inactive')">
+      <div class="stat-icon">🔒</div>
+      <div class="stat-label">已停用</div>
+      <div class="stat-value" id="inactiveClients">-</div>
+    </div>
+    
+    <div class="stat-card warning">
+      <div class="stat-icon">💰</div>
+      <div class="stat-label">本月收入</div>
+      <div class="stat-value" id="monthlyRevenue">-</div>
+    </div>
+  </div>
+  
+  <!-- 即將到期警告 -->
+  <div id="expiringAlert" style="display: none;"></div>
+  <div id="globalAlert" style="display: none;"></div>
+  
+  <!-- 客戶列表 -->
+  <div class="card">
+    <div class="card-title">
+      <span>📋 客戶列表</span>
+      <button class="btn btn-primary" onclick="loadClients()" style="padding:8px 16px;">
+        🔄 刷新資料
+      </button>
+    </div>
+    
+    <!-- 搜尋框 -->
+    <input 
+      type="text" 
+      class="search-box" 
+      id="searchBox" 
+      placeholder="🔍 搜尋客戶名稱、網站ID、聯絡人..."
+    >
+    
+    <!-- 篩選標籤 -->
+    <div class="filter-tabs">
+      <div class="filter-tab active" data-filter="all">全部客戶</div>
+      <div class="filter-tab" data-filter="active">✅ 啟用中</div>
+      <div class="filter-tab" data-filter="inactive">🔒 已停用</div>
+      <div class="filter-tab" data-filter="expiring">⚠️ 即將到期</div>
+      <div class="filter-tab" data-filter="trial">🎁 試用期</div>
+    </div>
+    
+    <!-- 客戶表格 -->
+    <div id="tableContainer">
+      <div class="loading">
+        <div class="loading-icon">⏳</div>
+        <div>載入中...</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 續費彈窗 -->
+  <div class="modal" id="renewModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">💰 快速續費</div>
+        <button class="close-btn" onclick="closeModal('renewModal')">×</button>
+      </div>
+      
+      <div style="background:#f9fafb; padding:16px; border-radius:8px; margin-bottom:20px;">
+        <div style="font-size:13px; color:#6b7280; margin-bottom:4px;">客戶資訊</div>
+        <div style="font-size:18px; font-weight:700;" id="renewClientName">-</div>
+        <div style="font-size:13px; color:#9ca3af; margin-top:4px;" id="renewClientId">-</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">📅 當前到期日期</label>
+        <input type="text" class="form-input" id="renewCurrentExpire" readonly style="background:#f3f4f6;">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">💳 續費方案 <span style="color:#dc2626">*</span></label>
+        <select class="form-select" id="renewPlan">
+          <option value="">請選擇...</option>
+          <option value="月繳">月繳 - 600元（延長30天）</option>
+          <option value="季繳">季繳 - 1440元（延長90天）</option>
+          <option value="半年繳">半年繳 - 2880元（延長180天）</option>
+          <option value="年繳">年繳 - 5400元（延長365天）</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">📅 續費後到期日期</label>
+        <input type="text" class="form-input" id="renewNewExpire" readonly style="background:#f9fafb; color:#059669; font-weight:600;">
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('renewModal')">取消</button>
+        <button class="btn btn-success" onclick="confirmRenew()" id="confirmRenewBtn">✓ 確認續費</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 編輯彈窗 -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">✏️ 編輯客戶資訊</div>
+        <button class="close-btn" onclick="closeModal('editModal')">×</button>
+      </div>
+      
+      <input type="hidden" id="editWebsiteId">
+      
+      <div class="form-group">
+        <label class="form-label">🏪 商家名稱</label>
+        <input type="text" class="form-input" id="editBrandName">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">👤 聯絡人</label>
+        <input type="text" class="form-input" id="editContactPerson">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">📞 聯絡電話</label>
+        <input type="text" class="form-input" id="editContactPhone">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">📝 備註</label>
+        <textarea class="form-input" id="editNote" rows="3"></textarea>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('editModal')">取消</button>
+        <button class="btn btn-primary" onclick="confirmEdit()">✓ 儲存變更</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 授權管理中心 API
+    const AUTH_API = "https://script.google.com/macros/s/AKfycbyDsD6V7cP239XOFvQ3mRRPILxQsBagt5UIFTJszkfsSf_1SXiDAzIav-F2dXPRU22X/exec";
+    
+    let allClients = [];
+    let currentFilter = 'all';
+    let selectedClient = null;
+    
+    // 載入客戶資料
+    async function loadClients() {
+      showNotification('⏳ 載入中...', 'info', 1000);
+      
+      try {
+        const res = await fetch(`${AUTH_API}?action=getAllClients&_t=${Date.now()}`);
+        const data = await res.json();
+        
+        if (data.ok && data.clients) {
+          allClients = data.clients;
+          updateStats();
+          displayClients();
+          showNotification('✅ 資料已更新', 'success');
+        } else {
+          showNotification('❌ 載入失敗：' + (data.msg || '未知錯誤'), 'error');
+        }
+      } catch (err) {
+        showNotification('❌ 連線失敗：' + err.message, 'error');
+      }
+    }
+    
+    // 更新統計數據
+    function updateStats() {
+      const total = allClients.length;
+      const active = allClients.filter(c => c.status === '啟用').length;
+      const inactive = total - active;
+      
+      const monthlyRevenue = allClients
+        .filter(c => c.status === '啟用')
+        .reduce((sum, c) => sum + (c.monthlyFee || 0), 0);
+      
+      document.getElementById('totalClients').textContent = total;
+      document.getElementById('activeClients').textContent = active;
+      document.getElementById('inactiveClients').textContent = inactive;
+      document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue.toLocaleString()}`;
+      
+      // 檢查即將到期
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const expiring = allClients.filter(c => {
+        if (!c.expireDate || c.status !== '啟用') return false;
+        const expireDate = new Date(c.expireDate);
+        const daysLeft = Math.ceil((expireDate - today) / (1000 * 60 * 60 * 24));
+        return daysLeft >= 0 && daysLeft <= 7;
+      });
+      
+      const alertDiv = document.getElementById('expiringAlert');
+      if (expiring.length > 0) {
+        alertDiv.style.display = 'block';
+        alertDiv.className = 'alert warning';
+        alertDiv.innerHTML = `
+          <strong>⚠️ 提醒：有 ${expiring.length} 個客戶即將到期（7天內）</strong><br>
+          ${expiring.slice(0, 3).map(c => {
+            const expireDate = new Date(c.expireDate);
+            const daysLeft = Math.ceil((expireDate - today) / (1000 * 60 * 60 * 24));
+            return `• ${c.brandName} (${c.websiteId}) - 剩餘 ${daysLeft} 天`;
+          }).join('<br>')}
+          ${expiring.length > 3 ? `<br>...還有 ${expiring.length - 3} 個` : ''}
+        `;
+      } else {
+        alertDiv.style.display = 'none';
+      }
+    }
+    
+    // 顯示客戶列表
+    function displayClients(filter = 'all', searchTerm = '') {
+      const tableContainer = document.getElementById('tableContainer');
+      
+      let filtered = allClients;
+      
+      if (filter === 'active') {
+        filtered = filtered.filter(c => c.status === '啟用');
+      } else if (filter === 'inactive') {
+        filtered = filtered.filter(c => c.status === '停用');
+      } else if (filter === 'expiring') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        filtered = filtered.filter(c => {
+          if (!c.expireDate || c.status !== '啟用') return false;
+          const expireDate = new Date(c.expireDate);
+          const daysLeft = Math.ceil((expireDate - today) / (1000 * 60 * 60 * 24));
+          return daysLeft >= 0 && daysLeft <= 7;
+        });
+      } else if (filter === 'trial') {
+        filtered = filtered.filter(c => c.plan === '試用期');
+      }
+      
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(c => 
+          (c.brandName && c.brandName.toLowerCase().includes(term)) ||
+          (c.websiteId && c.websiteId.toLowerCase().includes(term)) ||
+          (c.contactPerson && c.contactPerson.toLowerCase().includes(term))
+        );
+      }
+      
+      if (filtered.length === 0) {
+        tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#9ca3af;">找不到符合條件的客戶</div>';
+        return;
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      tableContainer.innerHTML = `
+        <div style="overflow-x:auto;">
+        <table class="client-table">
+          <thead>
+            <tr>
+              <th>網站ID</th>
+              <th>商家名稱</th>
+              <th>方案</th>
+              <th>狀態</th>
+              <th>到期日期</th>
+              <th>剩餘</th>
+              <th>月費</th>
+              <th>聯絡人</th>
+              <th style="text-align:center; min-width:200px;">快速操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(client => {
+              let daysLeft = '-';
+              let daysLeftDisplay = '-';
+              
+              if (client.expireDate) {
+                const expireDate = new Date(client.expireDate);
+                const days = Math.ceil((expireDate - today) / (1000 * 60 * 60 * 24));
+                daysLeft = days;
+                
+                if (days < 0) {
+                  daysLeftDisplay = `<span class="badge inactive">過期${Math.abs(days)}天</span>`;
+                } else if (days === 0) {
+                  daysLeftDisplay = '<span class="badge inactive">今天到期</span>';
+                } else if (days <= 3) {
+                  daysLeftDisplay = `<span class="badge inactive">${days}天</span>`;
+                } else if (days <= 7) {
+                  daysLeftDisplay = `<span class="badge warning">${days}天</span>`;
+                } else {
+                  daysLeftDisplay = `<span style="color:#6b7280">${days}天</span>`;
+                }
+              }
+              
+              const isActive = client.status === '啟用';
+              
+              return `
+                <tr>
+                  <td><strong>${client.websiteId || '-'}</strong></td>
+                  <td>${client.brandName || '-'}</td>
+                  <td>${client.plan || '-'}</td>
+                  <td>
+                    <span class="badge ${isActive ? 'active' : 'inactive'}">
+                      ${client.status || '-'}
+                    </span>
+                  </td>
+                  <td>${client.expireDate || '-'}</td>
+                  <td>${daysLeftDisplay}</td>
+                  <td style="font-weight:600; color:#f59e0b;">$${client.monthlyFee || 0}</td>
+                  <td>
+                    ${client.contactPerson || '-'}<br>
+                    <small style="color:#9ca3af">${client.contactPhone || ''}</small>
+                  </td>
+                  <td style="text-align:center; white-space:nowrap;">
+                    <button class="btn btn-success" onclick='openRenewModal(${JSON.stringify(client).replace(/'/g, "\\'")})'  title="續費">
+                      💰 續費
+                    </button>
+                    <button class="btn btn-${isActive ? 'warning' : 'success'}" onclick="toggleStatus('${client.websiteId}')" title="${isActive ? '停用' : '啟用'}">
+                      ${isActive ? '🔒 停用' : '✅ 啟用'}
+                    </button>
+                    <button class="btn btn-secondary" onclick='openEditModal(${JSON.stringify(client).replace(/'/g, "\\'")})'  title="編輯">
+                      ✏️ 編輯
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteClient('${client.websiteId}', '${client.brandName}')" title="刪除">
+                      🗑️ 刪除
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+        </div>
+      `;
+    }
+    
+    // 打開續費彈窗
+    function openRenewModal(client) {
+      selectedClient = client;
+      document.getElementById('renewClientName').textContent = client.brandName;
+      document.getElementById('renewClientId').textContent = `網站ID: ${client.websiteId}`;
+      document.getElementById('renewCurrentExpire').value = client.expireDate || '-';
+      document.getElementById('renewPlan').value = '';
+      document.getElementById('renewNewExpire').value = '';
+      document.getElementById('renewModal').classList.add('active');
+    }
+    
+    // 續費方案變更時計算新到期日
+    document.addEventListener('DOMContentLoaded', () => {
+      const renewPlanSelect = document.getElementById('renewPlan');
+      if (renewPlanSelect) {
+        renewPlanSelect.addEventListener('change', () => {
+          const plan = renewPlanSelect.value;
+          const currentExpire = document.getElementById('renewCurrentExpire').value;
+          
+          if (plan && currentExpire && currentExpire !== '-') {
+            const expireDate = new Date(currentExpire);
+            let newDate = new Date(expireDate);
+            
+            switch(plan) {
+              case '月繳':
+                newDate.setDate(newDate.getDate() + 30);
+                break;
+              case '季繳':
+                newDate.setDate(newDate.getDate() + 90);
+                break;
+              case '半年繳':
+                newDate.setDate(newDate.getDate() + 180);
+                break;
+              case '年繳':
+                newDate.setDate(newDate.getDate() + 365);
+                break;
+            }
+            
+            const formatted = newDate.toISOString().split('T')[0];
+            document.getElementById('renewNewExpire').value = formatted;
+          }
+        });
+      }
+    });
+    
+    // 確認續費
+    async function confirmRenew() {
+      const plan = document.getElementById('renewPlan').value;
+      
+      if (!plan) {
+        showNotification('⚠️ 請選擇續費方案', 'error');
+        return;
+      }
+      
+      const confirmBtn = document.getElementById('confirmRenewBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = '⏳ 處理中...';
+      
+      try {
+        const res = await fetch(`${AUTH_API}?action=renewClient&websiteId=${selectedClient.websiteId}&plan=${plan}`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          showNotification(`✅ 續費成功！新到期日：${data.data.newExpireDate}`, 'success');
+          closeModal('renewModal');
+          setTimeout(() => loadClients(), 500);
+        } else {
+          showNotification('❌ 續費失敗：' + data.msg, 'error');
+        }
+      } catch (err) {
+        showNotification('❌ 連線失敗：' + err.message, 'error');
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '✓ 確認續費';
+      }
+    }
+    
+    // 切換狀態
+    async function toggleStatus(websiteId) {
+      const client = allClients.find(c => c.websiteId === websiteId);
+      const currentStatus = client.status;
+      const action = currentStatus === '啟用' ? '停用' : '啟用';
+      
+      if (!confirm(`確定要${action}「${client.brandName}」嗎？`)) {
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${AUTH_API}?action=toggleStatus&websiteId=${websiteId}`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          showNotification(`✅ 已${action}客戶`, 'success');
+          setTimeout(() => loadClients(), 500);
+        } else {
+          showNotification('❌ 操作失敗：' + data.msg, 'error');
+        }
+      } catch (err) {
+        showNotification('❌ 連線失敗：' + err.message, 'error');
+      }
+    }
+    
+    // 刪除客戶
+    async function deleteClient(websiteId, brandName) {
+      if (!confirm(`⚠️ 確定要刪除「${brandName}」嗎？\n\n此操作無法復原！\n\n網站ID: ${websiteId}`)) {
+        return;
+      }
+      
+      // 二次確認（防止誤刪）
+      if (!confirm(`🔴 最後確認：真的要刪除「${brandName}」嗎？\n\n刪除後將無法恢復！`)) {
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${AUTH_API}?action=deleteClient&websiteId=${websiteId}`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          showNotification(`✅ 已刪除客戶：${brandName}`, 'success');
+          setTimeout(() => loadClients(), 500);
+        } else {
+          showNotification('❌ 刪除失敗：' + data.msg, 'error');
+        }
+      } catch (err) {
+        showNotification('❌ 連線失敗：' + err.message, 'error');
+      }
+    }
+    
+    // 打開編輯彈窗
+    function openEditModal(client) {
+      selectedClient = client;
+      document.getElementById('editWebsiteId').value = client.websiteId;
+      document.getElementById('editBrandName').value = client.brandName || '';
+      document.getElementById('editContactPerson').value = client.contactPerson || '';
+      document.getElementById('editContactPhone').value = client.contactPhone || '';
+      document.getElementById('editNote').value = client.note || '';
+      document.getElementById('editModal').classList.add('active');
+    }
+    
+    // 確認編輯
+    async function confirmEdit() {
+      const websiteId = document.getElementById('editWebsiteId').value;
+      const brandName = document.getElementById('editBrandName').value;
+      const contactPerson = document.getElementById('editContactPerson').value;
+      const contactPhone = document.getElementById('editContactPhone').value;
+      const note = document.getElementById('editNote').value;
+      
+      try {
+        const params = new URLSearchParams({
+          action: 'updateClient',
+          websiteId: websiteId,
+          brandName: brandName,
+          contactPerson: contactPerson,
+          contactPhone: contactPhone,
+          note: note
+        });
+        
+        const res = await fetch(`${AUTH_API}?${params}`);
+        const data = await res.json();
+        
+        if (data.ok) {
+          showNotification('✅ 客戶資訊已更新', 'success');
+          closeModal('editModal');
+          setTimeout(() => loadClients(), 500);
+        } else {
+          showNotification('❌ 更新失敗：' + data.msg, 'error');
+        }
+      } catch (err) {
+        showNotification('❌ 連線失敗：' + err.message, 'error');
+      }
+    }
+    
+    // 關閉彈窗
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+    
+    // 顯示通知
+    function showNotification(message, type = 'success', duration = 3000) {
+      // 移除現有通知
+      const existing = document.querySelector('.notification');
+      if (existing) existing.remove();
+      
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      if (duration > 0) {
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            notification.remove();
+          }
+        }, duration);
+      }
+    }
+    
+    // 搜尋功能
+    const searchBox = document.getElementById('searchBox');
+    searchBox.addEventListener('input', (e) => {
+      displayClients(currentFilter, e.target.value);
+    });
+    
+    // 篩選標籤
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        displayClients(currentFilter, searchBox.value);
+      });
+    });
+    
+    // 篩選函數（供統計卡片點擊）
+    function filterClients(filter) {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      const tab = document.querySelector(`.filter-tab[data-filter="${filter}"]`);
+      if (tab) tab.classList.add('active');
+      currentFilter = filter;
+      displayClients(filter, searchBox.value);
+    }
+    
+    // 點擊彈窗外部關閉
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+      }
+    });
+    
+    // 頁面載入
+    window.addEventListener('DOMContentLoaded', () => {
+      loadClients();
+    });
+  </script>
+</body>
+</html>
+
