@@ -485,8 +485,15 @@
 <body>
   <!-- Header -->
   <div class="header">
-    <h1>📊 餐車客戶管理中心 PRO</h1>
-    <p>完整控制 · 即時操作 · 效率管理</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1>📊 餐車客戶管理中心 PRO</h1>
+        <p>完整控制 · 即時操作 · 效率管理</p>
+      </div>
+      <button class="btn btn-primary" onclick="openPasswordModal()" style="padding: 12px 24px; font-size: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+        📋 打開管理表單
+      </button>
+    </div>
   </div>
   
   <!-- 統計卡片 -->
@@ -634,9 +641,58 @@
     </div>
   </div>
   
+  <!-- 密碼驗證彈窗 -->
+  <div class="modal" id="passwordModal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <div class="modal-title">🔐 管理員驗證</div>
+        <button class="close-btn" onclick="closePasswordModal()">×</button>
+      </div>
+      
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);">
+          🔒
+        </div>
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+          請輸入管理員密碼以訪問<br>
+          <strong>客戶授權管理中心 Google Sheets</strong>
+        </p>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">🔑 密碼</label>
+        <input 
+          type="password" 
+          class="form-input" 
+          id="adminPassword" 
+          placeholder="請輸入密碼..."
+          style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: 600;"
+          maxlength="4"
+          onkeypress="if(event.key === 'Enter') verifyPassword()"
+        >
+        <div id="passwordError" style="color: #dc2626; font-size: 13px; margin-top: 8px; text-align: center; display: none;">
+          ❌ 密碼錯誤，請重試
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closePasswordModal()">取消</button>
+        <button class="btn btn-primary" onclick="verifyPassword()" id="verifyBtn">
+          ✓ 確認
+        </button>
+      </div>
+    </div>
+  </div>
+  
   <script>
     // 授權管理中心 API
     const AUTH_API = "https://script.google.com/macros/s/AKfycbyDsD6V7cP239XOFvQ3mRRPILxQsBagt5UIFTJszkfsSf_1SXiDAzIav-F2dXPRU22X/exec";
+    
+    // Google Sheets 管理表單連結
+    const SHEETS_URL = "https://docs.google.com/spreadsheets/d/1xHLJEnSv3vXZrlhWZQZou-v4ZnVn1X33vLgISr8qg9E/edit?gid=1233539951#gid=1233539951";
+    
+    // 管理員密碼
+    const ADMIN_PASSWORD = "0825";
     
     let allClients = [];
     let currentFilter = 'all';
@@ -1004,6 +1060,81 @@
     function closeModal(modalId) {
       document.getElementById(modalId).classList.remove('active');
     }
+    
+    // === 密碼驗證相關功能 ===
+    
+    // 打開密碼彈窗
+    function openPasswordModal() {
+      document.getElementById('passwordModal').classList.add('active');
+      document.getElementById('adminPassword').value = '';
+      document.getElementById('passwordError').style.display = 'none';
+      // 自動聚焦到密碼輸入框
+      setTimeout(() => {
+        document.getElementById('adminPassword').focus();
+      }, 300);
+    }
+    
+    // 關閉密碼彈窗
+    function closePasswordModal() {
+      document.getElementById('passwordModal').classList.remove('active');
+      document.getElementById('adminPassword').value = '';
+      document.getElementById('passwordError').style.display = 'none';
+    }
+    
+    // 驗證密碼
+    function verifyPassword() {
+      const inputPassword = document.getElementById('adminPassword').value;
+      const errorDiv = document.getElementById('passwordError');
+      const verifyBtn = document.getElementById('verifyBtn');
+      
+      if (!inputPassword) {
+        errorDiv.textContent = '⚠️ 請輸入密碼';
+        errorDiv.style.display = 'block';
+        return;
+      }
+      
+      if (inputPassword === ADMIN_PASSWORD) {
+        // 密碼正確
+        errorDiv.style.display = 'none';
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = '✓ 驗證成功';
+        
+        showNotification('✅ 驗證成功！正在打開管理表單...', 'success', 2000);
+        
+        // 延遲後打開 Google Sheets
+        setTimeout(() => {
+          window.open(SHEETS_URL, '_blank');
+          closePasswordModal();
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = '✓ 確認';
+        }, 800);
+        
+      } else {
+        // 密碼錯誤
+        errorDiv.textContent = '❌ 密碼錯誤，請重試';
+        errorDiv.style.display = 'block';
+        
+        // 震動效果
+        const passwordInput = document.getElementById('adminPassword');
+        passwordInput.style.animation = 'shake 0.5s';
+        setTimeout(() => {
+          passwordInput.style.animation = '';
+          passwordInput.value = '';
+          passwordInput.focus();
+        }, 500);
+      }
+    }
+    
+    // 添加震動動畫（在CSS中定義，這裡用內聯樣式實現）
+    const shakeStyle = document.createElement('style');
+    shakeStyle.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+        20%, 40%, 60%, 80% { transform: translateX(10px); }
+      }
+    `;
+    document.head.appendChild(shakeStyle);
     
     // 顯示通知
     function showNotification(message, type = 'success', duration = 3000) {
