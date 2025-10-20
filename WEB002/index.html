@@ -6,20 +6,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   
-  <!-- 🚀 性能優化：資源提示 -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="theme-color" content="#d97706" />
-  
   <!-- 🚀 性能優化：預連接到 API -->
-  <link rel="preconnect" href="https://script.google.com" crossorigin />
+  <link rel="preconnect" href="https://script.google.com" />
   <link rel="dns-prefetch" href="https://script.google.com" />
-  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="preconnect" href="https://images.unsplash.com" />
   <link rel="dns-prefetch" href="https://images.unsplash.com" />
-  
-  <!-- 🚀 預載入關鍵資源 -->
-  <link rel="prefetch" href="./config.js" />
-  <link rel="prefetch" href="./app.js" />
   
   <title>六蒜包·餐車訂購表單｜線上預訂</title>
   <style>
@@ -953,9 +944,8 @@
     
     // 🚀 場地資料快取（避免重複載入）
     const VENUE_CACHE = {};
-    const CACHE_EXPIRY_TIME = 10 * 60 * 1000; // 快取有效期：10分鐘（延長以減少請求）
-    const CACHE_VERSION = 'v2.4'; // 快取版本（更新後自動清除舊快取）
-    const CACHE_STORAGE_KEY = `venue_cache_${CACHE_VERSION}`; // LocalStorage 儲存鍵名
+    const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 快取有效期：5分鐘
+    const CACHE_STORAGE_KEY = 'venue_cache_v1'; // LocalStorage 儲存鍵名
     
     // 🚀 檢查快取是否過期
     function isCacheValid(cacheData) {
@@ -967,41 +957,20 @@
     // 💾 從 LocalStorage 載入快取
     function loadCacheFromStorage() {
       try {
-        // 🧹 清理舊版本快取
-        const allKeys = Object.keys(localStorage);
-        allKeys.forEach(key => {
-          if (key.startsWith('venue_cache_') && key !== CACHE_STORAGE_KEY) {
-            localStorage.removeItem(key);
-            console.log(`🧹 已清除舊版本快取：${key}`);
-          }
-        });
-        
         const stored = localStorage.getItem(CACHE_STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          let validCount = 0;
-          let expiredCount = 0;
-          
           // 檢查每個場地的快取是否過期
           Object.keys(parsed).forEach(venueCode => {
             if (isCacheValid(parsed[venueCode])) {
               VENUE_CACHE[venueCode] = parsed[venueCode];
-              validCount++;
-            } else {
-              expiredCount++;
+              console.log(`💾 從 LocalStorage 恢復快取：${venueCode}`);
             }
           });
-          
-          console.log(`✅ 已載入 ${validCount} 個場地快取${expiredCount > 0 ? `，跳過 ${expiredCount} 個過期快取` : ''}`);
+          console.log(`✅ 已載入 ${Object.keys(VENUE_CACHE).length} 個場地快取`);
         }
       } catch (err) {
         console.warn('⚠️ 無法從 LocalStorage 載入快取:', err);
-        // 如果讀取失敗，清除可能損壞的快取
-        try {
-          localStorage.removeItem(CACHE_STORAGE_KEY);
-        } catch (e) {
-          // 忽略清除錯誤
-        }
       }
     }
     
@@ -1034,26 +1003,6 @@
     const IMAGE_CACHE = new Set(); // 已載入的圖片 URL
     const IMAGE_PRELOAD_QUEUE = []; // 待預載入的圖片隊列
     let isPreloadingImages = false;
-    
-    // 🖼️ 使用 Intersection Observer 實現智能圖片加載
-    let imageObserver = null;
-    if ('IntersectionObserver' in window) {
-      imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            if (img.dataset.src) {
-              img.src = img.dataset.src;
-              img.removeAttribute('data-src');
-              IMAGE_CACHE.add(img.src);
-              observer.unobserve(img);
-            }
-          }
-        });
-      }, {
-        rootMargin: '50px' // 提前 50px 開始載入
-      });
-    }
     
     // 🖼️ 預載入單張圖片
     function preloadImage(url) {
@@ -1132,42 +1081,6 @@
       };
     }
     
-    // 🚀 增強版 fetch - 支援超時和重試
-    async function fetchWithRetry(url, options = {}, retries = 2, timeout = 10000) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      try {
-        const response = await fetch(url, {
-          ...options,
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        
-        if (!response.ok && retries > 0) {
-          console.log(`⚠️ 請求失敗，嘗試重試 (剩餘 ${retries} 次)`);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // 等待 1 秒後重試
-          return fetchWithRetry(url, options, retries - 1, timeout);
-        }
-        
-        return response;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        
-        if (error.name === 'AbortError') {
-          console.warn('⏱️ 請求超時');
-        }
-        
-        if (retries > 0) {
-          console.log(`⚠️ 請求失敗，嘗試重試 (剩餘 ${retries} 次)`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return fetchWithRetry(url, options, retries - 1, timeout);
-        }
-        
-        throw error;
-      }
-    }
-    
     // 🧮 階梯價格計算函數（動態規劃版本）
     function calculateTierPrice(quantity, basePrice, priceRules) {
       if (quantity <= 0) return 0;
@@ -1224,9 +1137,8 @@
     }
     
     // 🚀 計算函數（稍後定義完整邏輯）
-    // 使用 var 避免與外部 app.js 的 function 宣告衝突
-    var recalc = () => {};
-    var debouncedRecalc = () => {};
+    let recalc = () => {};
+    let debouncedRecalc = () => {};
     
 
     // ============================================
@@ -1575,7 +1487,7 @@
           apiUrl += `&venue=${targetVenue}`;
         }
         
-        const res = await fetchWithRetry(apiUrl);
+        const res = await fetch(apiUrl);
         const data = await res.json();
         
         if (data.ok) {
@@ -1618,7 +1530,7 @@
     // ====== 載入系統設定（時間、取餐方式等） ======
     async function loadConfig() {
       try {
-        const res = await fetchWithRetry(`${GAS_ENDPOINT}?action=getConfig`);
+        const res = await fetch(`${GAS_ENDPOINT}?action=getConfig`);
         const data = await res.json();
         
         if (data.ok) {
@@ -1664,7 +1576,7 @@
             return;
           }
           
-          const res = await fetchWithRetry(`${GAS_ENDPOINT}?action=getInventory&venue=${venue.code}`);
+          const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${venue.code}`);
           const data = await res.json();
           
           if (data.ok) {
@@ -1812,7 +1724,7 @@
             }
             
             // 從服務器載入該場地的庫存
-            const res = await fetchWithRetry(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}`);
+            const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${selectedVenue}`);
             const data = await res.json();
             
             if (data.ok) {
@@ -2039,11 +1951,6 @@
         const description = item.description || '';
         const dailyLimit = item.dailyLimit || 0;
         
-        // 🎨 優惠標籤顏色（從 Google Sheet 讀取）
-        let saleLabelText = saleLabel;
-        let saleLabelBgColor = item.saleLabelBgColor || '#dc2626'; // 背景色（預設紅色）
-        let saleLabelTextColor = item.saleLabelTextColor || '#ffffff'; // 文字色（預設白色）
-        
         // 💰 生成價格顯示 HTML（簡化版，只顯示起始價）
         let priceHTML = '';
         if (hasDiscount && priceRules.length > 0) {
@@ -2059,20 +1966,20 @@
         }
         
         // 🏷️ 優惠標籤 HTML（如果有）
-        const saleLabelHTML = saleLabelText ? `
+        const saleLabelHTML = saleLabel ? `
           <div style="
             position:absolute; 
             top:6px; 
             left:6px; 
-            background:${saleLabelBgColor}; 
-            color:${saleLabelTextColor}; 
+            background:linear-gradient(135deg, #dc2626 0%, #ef4444 100%); 
+            color:#fff; 
             padding:clamp(3px,0.8vw,4px) clamp(6px,1.5vw,8px); 
             border-radius:clamp(4px,1vw,6px); 
             font-size:clamp(10px,2.2vw,11px); 
             font-weight:700; 
             z-index:5;
-            box-shadow:0 2px 8px rgba(0,0,0,0.2);
-          ">🏷️ ${saleLabelText}</div>
+            box-shadow:0 2px 6px rgba(220,38,38,0.3);
+          ">🏷️ ${saleLabel}</div>
         ` : '';
         
         // 🌟 推薦標籤 HTML（如果有）
@@ -2126,10 +2033,7 @@
               src="${imageUrl}" 
               alt="${item.name}" 
               class="product-image" 
-              width="400"
-              height="300"
               loading="lazy"
-              decoding="async"
               onerror="this.src='https://via.placeholder.com/400x400/fef3c7/b45309?text=${encodeURIComponent(item.name)}'"
             />
           </div>
@@ -2551,7 +2455,7 @@
     });
 
     // ====== 註冊 Service Worker（離線支援） ======
-    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
           .then((registration) => {
@@ -2580,8 +2484,6 @@
           console.log('✅ Service Worker 快取已清除');
         }
       });
-    } else if ('serviceWorker' in navigator && location.protocol === 'file:') {
-      console.log('ℹ️ 從本地檔案開啟，Service Worker 已停用（需要 HTTP/HTTPS 協議）');
     }
     
     // 🔔 顯示更新通知
@@ -2834,37 +2736,6 @@
       }
     });
     
-    // 🚀 性能監控
-    function measurePerformance() {
-      if ('performance' in window && 'getEntriesByType' in performance) {
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-            const perfData = performance.getEntriesByType('navigation')[0];
-            if (perfData) {
-              const loadTime = perfData.loadEventEnd - perfData.fetchStart;
-              const domContentLoaded = perfData.domContentLoadedEventEnd - perfData.fetchStart;
-              const firstPaint = performance.getEntriesByType('paint').find(e => e.name === 'first-contentful-paint');
-              
-              console.log('📊 性能指標：');
-              console.log(`  ⏱️ 頁面載入時間: ${(loadTime / 1000).toFixed(2)}s`);
-              console.log(`  ⏱️ DOM 載入時間: ${(domContentLoaded / 1000).toFixed(2)}s`);
-              if (firstPaint) {
-                console.log(`  🎨 首次內容繪製: ${(firstPaint.startTime / 1000).toFixed(2)}s`);
-              }
-              
-              // 如果載入時間超過 5 秒，提示用戶
-              if (loadTime > 5000) {
-                console.warn('⚠️ 頁面載入較慢，可能受網路影響');
-              }
-            }
-          }, 0);
-        });
-      }
-    }
-    
-    // 啟動性能監控
-    measurePerformance();
-    
     // ====== 頁面載入時初始化 ======
     window.addEventListener('DOMContentLoaded', async () => {
       // 💾 首先從 LocalStorage 恢復快取（立即可用）
@@ -3010,7 +2881,7 @@
         
         try {
           // 重新從服務器載入
-          const res = await fetchWithRetry(`${GAS_ENDPOINT}?action=getInventory&venue=${CURRENT_VENUE}&_t=${Date.now()}`);
+          const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${CURRENT_VENUE}&_t=${Date.now()}`);
           const data = await res.json();
           
           if (data.ok) {
