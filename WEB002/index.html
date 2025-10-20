@@ -430,7 +430,15 @@
       font-weight: 600;
       margin-bottom: clamp(3px, 0.8vw, 4px);
       color: var(--text);
-      line-height: 1.2;
+      line-height: 1.3;
+      /* 🔧 长文本处理 */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; /* 最多显示2行 */
+      line-clamp: 2; /* 标准属性 */
+      -webkit-box-orient: vertical;
+      word-break: break-word;
     }
     .product-price{
       font-size: clamp(14px, 3vw, 15px);
@@ -606,10 +614,18 @@
       padding: clamp(15px, 4vw, 20px);
     }
     .preview-item{
-      padding: clamp(4px, 1vw, 5px) 0;
+      padding: clamp(6px, 1.5vw, 8px) 0;
       border-bottom: 1px solid var(--border);
+      /* 🔧 长文本处理 */
+      word-break: break-word;
+      line-height: 1.6;
     }
     .preview-item:last-child{ border-bottom: none; }
+    .preview-item strong{
+      display: inline-block;
+      max-width: 60%;
+      word-break: break-word;
+    }
     
     /* Logo 放大模態框 */
     .modal{
@@ -632,6 +648,7 @@
     }
     @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
     @keyframes zoomIn{ from{transform:scale(.8)} to{transform:scale(1)} }
+    @keyframes slideUp{ from{transform:translate(-50%, 100px); opacity:0} to{transform:translate(-50%, 0); opacity:1} }
     
     /* 預覽+總計區域容器 */
     .summary-grid{
@@ -748,6 +765,33 @@
         <p class="brand-subtitle">📍 定點餐車｜預訂取餐</p>
       </div>
     </div>
+    
+    <!-- 🔧 快取管理按鈕 -->
+    <button 
+      type="button"
+      id="cacheManagerBtn"
+      style="
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.2);
+        border: 1.5px solid rgba(255,255,255,0.3);
+        color: #fff;
+        width: clamp(32px, 8vw, 36px);
+        height: clamp(32px, 8vw, 36px);
+        border-radius: 50%;
+        font-size: clamp(16px, 4vw, 18px);
+        cursor: pointer;
+        transition: all .2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      "
+      onclick="this.style.background='rgba(255,255,255,0.3)'"
+      onmouseout="this.style.background='rgba(255,255,255,0.2)'"
+      title="快取管理"
+    >⚙️</button>
     </header>
 
   <div class="container">
@@ -901,12 +945,127 @@
     // 🚀 場地資料快取（避免重複載入）
     const VENUE_CACHE = {};
     const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 快取有效期：5分鐘
+    const CACHE_STORAGE_KEY = 'venue_cache_v1'; // LocalStorage 儲存鍵名
     
     // 🚀 檢查快取是否過期
     function isCacheValid(cacheData) {
       if (!cacheData || !cacheData.timestamp) return false;
       const now = Date.now();
       return (now - cacheData.timestamp) < CACHE_EXPIRY_TIME;
+    }
+    
+    // 💾 從 LocalStorage 載入快取
+    function loadCacheFromStorage() {
+      try {
+        const stored = localStorage.getItem(CACHE_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          // 檢查每個場地的快取是否過期
+          Object.keys(parsed).forEach(venueCode => {
+            if (isCacheValid(parsed[venueCode])) {
+              VENUE_CACHE[venueCode] = parsed[venueCode];
+              console.log(`💾 從 LocalStorage 恢復快取：${venueCode}`);
+            }
+          });
+          console.log(`✅ 已載入 ${Object.keys(VENUE_CACHE).length} 個場地快取`);
+        }
+      } catch (err) {
+        console.warn('⚠️ 無法從 LocalStorage 載入快取:', err);
+      }
+    }
+    
+    // 💾 儲存快取到 LocalStorage
+    function saveCacheToStorage() {
+      try {
+        localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(VENUE_CACHE));
+        console.log('💾 快取已儲存到 LocalStorage');
+      } catch (err) {
+        console.warn('⚠️ 無法儲存快取到 LocalStorage:', err);
+      }
+    }
+    
+    // 🗑️ 清除所有快取
+    function clearAllCache() {
+      Object.keys(VENUE_CACHE).forEach(key => delete VENUE_CACHE[key]);
+      localStorage.removeItem(CACHE_STORAGE_KEY);
+      console.log('🗑️ 所有快取已清除');
+    }
+    
+    // 📊 取得快取資訊
+    function getCacheInfo() {
+      const cacheCount = Object.keys(VENUE_CACHE).length;
+      const cacheSize = new Blob([JSON.stringify(VENUE_CACHE)]).size;
+      const cacheSizeKB = (cacheSize / 1024).toFixed(2);
+      return { cacheCount, cacheSizeKB };
+    }
+    
+    // 🖼️ 圖片預加載快取
+    const IMAGE_CACHE = new Set(); // 已載入的圖片 URL
+    const IMAGE_PRELOAD_QUEUE = []; // 待預載入的圖片隊列
+    let isPreloadingImages = false;
+    
+    // 🖼️ 預載入單張圖片
+    function preloadImage(url) {
+      return new Promise((resolve, reject) => {
+        if (IMAGE_CACHE.has(url)) {
+          resolve(url);
+          return;
+        }
+        
+        const img = new Image();
+        img.onload = () => {
+          IMAGE_CACHE.add(url);
+          resolve(url);
+        };
+        img.onerror = () => reject(url);
+        img.src = url;
+      });
+    }
+    
+    // 🖼️ 批次預載入圖片（限流，避免一次載入太多）
+    async function batchPreloadImages(urls, concurrency = 3) {
+      if (isPreloadingImages) return;
+      isPreloadingImages = true;
+      
+      console.log(`🖼️ 開始預載入 ${urls.length} 張圖片...`);
+      
+      const chunks = [];
+      for (let i = 0; i < urls.length; i += concurrency) {
+        chunks.push(urls.slice(i, i + concurrency));
+      }
+      
+      let loadedCount = 0;
+      for (const chunk of chunks) {
+        await Promise.allSettled(chunk.map(url => preloadImage(url)));
+        loadedCount += chunk.length;
+        console.log(`🖼️ 已載入 ${loadedCount}/${urls.length} 張圖片`);
+      }
+      
+      isPreloadingImages = false;
+      console.log('✅ 圖片預載入完成！');
+    }
+    
+    // 🖼️ 從場地資料中提取所有圖片 URL
+    function extractImageUrls(venueData) {
+      const urls = [];
+      
+      // 從商品列表提取
+      if (venueData.products) {
+        venueData.products.forEach(p => {
+          if (p.imageUrl) urls.push(p.imageUrl);
+          if (p.img) urls.push(p.img);
+        });
+      }
+      
+      // 從 mainItems 提取
+      if (venueData.mainItems) {
+        venueData.mainItems.forEach(item => {
+          if (item.imageUrl) urls.push(item.imageUrl);
+          if (item.img) urls.push(item.img);
+        });
+      }
+      
+      return [...new Set(urls)]; // 去重
     }
     
     // 🚀 工具函数：防抖（避免频繁计算）
@@ -989,7 +1148,7 @@
     const AUTH_API = "https://script.google.com/macros/s/AKfycbyDsD6V7cP239XOFvQ3mRRPILxQsBagt5UIFTJszkfsSf_1SXiDAzIav-F2dXPRU22X/exec"; // 授權管理中心 API 網址
     
     // Google Apps Script URL（客戶的訂單系統）
-    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwmgaVeXBR7JSMeQHldKaSsijOpOyR7OQ1OenHzbG_wFZJ2-WPigZ9DuR_b5PyfNeqY/exec"; // ✅ 已部署（v2.0 阶梯定价完整版）
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbyM-4vztyA6Dduul6ylZutjA86yIJT_BTqI1tmuv9d-bMwDEHzYFT0U0P3A1-5n3JNv/exec"; // ✅ 已部署（v2.4 组合优惠+订单美化+完整功能）
 
     // ====== 授權檢查 ======
     async function checkAuthorization() {
@@ -1411,6 +1570,12 @@
       // 並行載入所有場地的資料
       const preloadPromises = activeVenues.map(async (venue) => {
         try {
+          // 如果快取中已有且有效，跳過
+          if (VENUE_CACHE[venue.code] && isCacheValid(VENUE_CACHE[venue.code])) {
+            console.log(`⚡ 跳過預載入（快取有效）：${venue.name}`);
+            return;
+          }
+          
           const res = await fetch(`${GAS_ENDPOINT}?action=getInventory&venue=${venue.code}`);
           const data = await res.json();
           
@@ -1431,7 +1596,24 @@
       });
       
       await Promise.allSettled(preloadPromises);
+      
+      // 💾 儲存到 LocalStorage
+      saveCacheToStorage();
+      
       console.log('🎉 所有場地預載入完成！');
+      
+      // 🖼️ 預載入所有圖片（背景執行，不阻塞 UI）
+      setTimeout(() => {
+        const allImageUrls = [];
+        Object.values(VENUE_CACHE).forEach(venueData => {
+          const urls = extractImageUrls(venueData);
+          allImageUrls.push(...urls);
+        });
+        
+        if (allImageUrls.length > 0) {
+          batchPreloadImages(allImageUrls);
+        }
+      }, 1000); // 延遲 1 秒執行，讓頁面先完成載入
     }
     
     // 更新場地選項
@@ -1584,6 +1766,9 @@
                 timestamp: Date.now()
               };
               console.log(`💾 場地資料已快取：${selectedVenue}`);
+              
+              // 💾 同步到 LocalStorage
+              saveCacheToStorage();
               
               // 移除載入提示
               document.body.removeChild(loadingMsg);
@@ -1769,8 +1954,9 @@
         // 💰 生成價格顯示 HTML（簡化版，只顯示起始價）
         let priceHTML = '';
         if (hasDiscount && priceRules.length > 0) {
-          // 有階梯價格：只顯示「$XX起」
-          priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${basePrice}起</div>`;
+          // 有階梯價格：找最低價格顯示
+          const minPrice = Math.min(...priceRules.map(r => r.price));
+          priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${minPrice}起</div>`;
         } else if (basePrice > 0) {
           // 無優惠：只顯示單價
           priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${basePrice}</div>`;
@@ -1854,7 +2040,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:clamp(5px,1.2vw,6px);">
             <div style="display:flex; flex-direction:column; gap:clamp(2px,0.5vw,3px); flex:1;">
               <div style="display:flex; align-items:center; gap:clamp(4px,1vw,6px);">
-                <div class="product-name" style="margin-bottom:0;">${item.name}</div>
+                <div class="product-name" style="margin-bottom:0;" title="${item.name}">${item.name}</div>
                 <div class="product-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
               </div>
               ${dailyLimitHTML}
@@ -1882,8 +2068,17 @@
               ${priceRules.map((rule, index) => {
                 // 🆕 支援自訂標籤
                 if (rule.isCustomLabel && rule.label) {
-                  // 自訂標籤格式：6入袋裝 $100
-                  return `<option value="${rule.qty}">${rule.label} $${rule.price}</option>`;
+                  // 自訂標籤格式：從標籤中提取數量，顯示平均價
+                  // 例如："6入袋裝" → 提取 6 → 計算 100/6 = 16.7
+                  const qtyMatch = rule.label.match(/(\d+)\s*入/);
+                  if (qtyMatch) {
+                    const packageQty = parseInt(qtyMatch[1]); // 包裝內的數量（例如：6入）
+                    const avgPrice = (rule.price / packageQty).toFixed(1); // 平均每入價格
+                    return `<option value="${rule.qty}">${rule.label} $${rule.price} (平均$${avgPrice})</option>`;
+                  } else {
+                    // 標籤中沒有"X入"，就不顯示平均價
+                    return `<option value="${rule.qty}">${rule.label} $${rule.price}</option>`;
+                  }
                 } else {
                   // 一般格式：3個 $200 (平均$66) 省$25
                   const avgPrice = Math.round(rule.price / rule.qty);
@@ -1904,7 +2099,8 @@
               value="0" 
               data-base-price="${basePrice}"
               data-price-rules='${JSON.stringify(priceRules)}'
-              data-name="${item.name}" 
+              data-name="${item.name}"
+              data-combo-group="${item.comboGroupId || ''}"
               class="qty"
             />
             <button type="button" class="qty-btn" data-action="increase" data-target="${item.name}">+</button>
@@ -2108,7 +2304,7 @@
     const form = document.querySelector('#orderForm');
     const result = document.querySelector('#result');
 
-    // 定義實際的 recalc 函數（阶梯定价版本）
+    // 定義實際的 recalc 函數（组合优惠版本）
     recalc = function() {
       let items = [];
       let total = 0;
@@ -2116,30 +2312,91 @@
       // 每次計算時重新獲取所有 .qty 元素（支援動態生成的商品）
       const qtyInputs = document.querySelectorAll('.qty');
       
+      // 🆕 第1步：收集所有选中的商品
+      const selectedItems = [];
       qtyInputs.forEach(q => {
         const n = parseInt(q.value || '0', 10);
         if (n > 0) {
-          const name = q.dataset.name;
-          const basePrice = parseFloat(q.dataset.basePrice) || 0;
-          const priceRules = JSON.parse(q.dataset.priceRules || '[]');
+          selectedItems.push({
+            name: q.dataset.name,
+            qty: n,
+            basePrice: parseFloat(q.dataset.basePrice) || 0,
+            priceRules: JSON.parse(q.dataset.priceRules || '[]'),
+            comboGroup: q.dataset.comboGroup || ''
+          });
+        }
+      });
+      
+      // 🆕 第2步：按组ID分组（用于组合优惠计算）
+      const comboGroups = {};
+      selectedItems.forEach(item => {
+        if (item.comboGroup) {
+          if (!comboGroups[item.comboGroup]) {
+            comboGroups[item.comboGroup] = {
+              items: [],
+              totalQty: 0,
+              basePrice: item.basePrice,
+              priceRules: item.priceRules
+            };
+          }
+          comboGroups[item.comboGroup].items.push(item);
+          comboGroups[item.comboGroup].totalQty += item.qty;
+        }
+      });
+      
+      // 🆕 第3步：计算每个商品的价格
+      selectedItems.forEach(item => {
+        let subtotal = 0;
+        let avgPrice = item.basePrice;
+        
+        if (item.comboGroup && comboGroups[item.comboGroup]) {
+          // 🎯 组合优惠：使用组总数量计算，再按比例分配
+          const group = comboGroups[item.comboGroup];
+          const groupTotalPrice = calculateTierPrice(group.totalQty, group.basePrice, group.priceRules);
           
-          // 🧮 使用阶梯价格计算
-          const subtotal = calculateTierPrice(n, basePrice, priceRules);
-          total += subtotal;
-          
-          // 计算平均单价（用于显示）
-          const avgPrice = n > 0 ? Math.round(subtotal / n) : basePrice;
-          
-          items.push({name, qty: n, basePrice, avgPrice, subtotal, priceRules});
-          
-          // 🌟 更新优惠提示
-          const tipEl = document.querySelector(`.tier-price-tip[data-item="${name}"]`);
-          if (tipEl) {
-            const tip = getTierPriceTip(n, basePrice, priceRules);
+          // 按数量比例分配价格
+          subtotal = Math.round(groupTotalPrice * (item.qty / group.totalQty));
+          avgPrice = Math.round(subtotal / item.qty);
+        } else {
+          // 🧮 一般计算：单独计算
+          subtotal = calculateTierPrice(item.qty, item.basePrice, item.priceRules);
+          avgPrice = item.qty > 0 ? Math.round(subtotal / item.qty) : item.basePrice;
+        }
+        
+        total += subtotal;
+        items.push({
+          name: item.name,
+          qty: item.qty,
+          basePrice: item.basePrice,
+          avgPrice: avgPrice,
+          subtotal: subtotal,
+          priceRules: item.priceRules,
+          comboGroup: item.comboGroup
+        });
+        
+        // 🌟 更新优惠提示
+        const tipEl = document.querySelector(`.tier-price-tip[data-item="${item.name}"]`);
+        if (tipEl) {
+          if (item.comboGroup && comboGroups[item.comboGroup]) {
+            // 显示组合优惠提示
+            const group = comboGroups[item.comboGroup];
+            const tip = getTierPriceTip(group.totalQty, group.basePrice, group.priceRules);
+            if (tip) {
+              tipEl.textContent = `🎁 组合优惠：${tip}`;
+              tipEl.style.color = '#059669';
+            } else {
+              tipEl.textContent = '';
+            }
+          } else {
+            const tip = getTierPriceTip(item.qty, item.basePrice, item.priceRules);
             tipEl.textContent = tip;
           }
-        } else {
-          // 清空优惠提示
+        }
+      });
+      
+      // 清空未选中商品的提示
+      qtyInputs.forEach(q => {
+        if (!q.value || q.value === '0') {
           const tipEl = document.querySelector(`.tier-price-tip[data-item="${q.dataset.name}"]`);
           if (tipEl) {
             tipEl.textContent = '';
@@ -2157,6 +2414,7 @@
               ${item.priceRules.length > 0 ? `(平均@$${item.avgPrice})` : `@$${item.basePrice}`}
             </span>
             <span style="float:right;color:var(--primary)">$${item.subtotal}</span>
+            ${item.comboGroup ? `<br/><small style="color:#059669;">🎁 组合优惠</small>` : ''}
           </div>
         `).join('');
       }
@@ -2196,8 +2454,293 @@
       console.warn('⚠️ 網路已斷線');
     });
 
+    // ====== 註冊 Service Worker（離線支援） ======
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then((registration) => {
+            console.log('✅ Service Worker 註冊成功:', registration.scope);
+            
+            // 監聽更新
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // 有新版本可用
+                  console.log('🆕 發現新版本');
+                  showUpdateNotification();
+                }
+              });
+            });
+          })
+          .catch((err) => {
+            console.warn('⚠️ Service Worker 註冊失敗:', err);
+          });
+      });
+      
+      // 監聽 Service Worker 訊息
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'CACHE_CLEARED') {
+          console.log('✅ Service Worker 快取已清除');
+        }
+      });
+    }
+    
+    // 🔔 顯示更新通知
+    function showUpdateNotification() {
+      const updateBanner = document.createElement('div');
+      updateBanner.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        animation: slideUp 0.3s ease;
+      `;
+      
+      updateBanner.innerHTML = `
+        <span>🆕 有新版本可用</span>
+        <button 
+          onclick="location.reload()" 
+          style="
+            padding: 6px 14px;
+            background: #fff;
+            color: #2563eb;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+          "
+        >立即更新</button>
+      `;
+      
+      document.body.appendChild(updateBanner);
+    }
+    
+    // 🔧 顯示快取管理對話框
+    function showCacheManager() {
+      const info = getCacheInfo();
+      
+      // 計算 Service Worker 快取大小（估算）
+      let swCacheSize = '計算中...';
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        navigator.storage.estimate().then(estimate => {
+          const usageInMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+          document.getElementById('swCacheSize').textContent = `${usageInMB} MB`;
+        });
+      }
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.2s ease;
+      `;
+      
+      modal.innerHTML = `
+        <div style="
+          background: #fff;
+          border-radius: 16px;
+          max-width: 500px;
+          width: 100%;
+          max-height: 80vh;
+          overflow-y: auto;
+          animation: zoomIn 0.2s ease;
+        ">
+          <!-- 標題 -->
+          <div style="
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          ">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--text);">
+              ⚙️ 快取管理
+            </h2>
+            <button 
+              onclick="this.closest('[style*=fixed]').remove()"
+              style="
+                background: transparent;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: var(--muted);
+                padding: 0;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >×</button>
+          </div>
+          
+          <!-- 內容 -->
+          <div style="padding: 20px;">
+            <!-- 快取統計 -->
+            <div style="
+              background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+              padding: 16px;
+              border-radius: 12px;
+              margin-bottom: 20px;
+            ">
+              <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 700; color: var(--text);">
+                📊 快取統計
+              </h3>
+              <div style="display: grid; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--muted); font-size: 14px;">場地快取數量</span>
+                  <span style="font-weight: 700; color: var(--primary);">${info.cacheCount} 個</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--muted); font-size: 14px;">快取大小</span>
+                  <span style="font-weight: 700; color: var(--primary);">${info.cacheSizeKB} KB</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--muted); font-size: 14px;">圖片快取數量</span>
+                  <span style="font-weight: 700; color: var(--primary);">${IMAGE_CACHE.size} 張</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--muted); font-size: 14px;">Service Worker</span>
+                  <span style="font-weight: 700; color: ${navigator.serviceWorker.controller ? 'var(--success)' : 'var(--muted)'};">
+                    ${navigator.serviceWorker.controller ? '✅ 已啟用' : '❌ 未啟用'}
+                  </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="color: var(--muted); font-size: 14px;">總快取大小</span>
+                  <span id="swCacheSize" style="font-weight: 700; color: var(--primary);">${swCacheSize}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 快取說明 -->
+            <div style="
+              background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+              padding: 16px;
+              border-radius: 12px;
+              margin-bottom: 20px;
+              border: 1.5px solid #fbbf24;
+            ">
+              <h3 style="margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #92400e;">
+                💡 快取說明
+              </h3>
+              <ul style="margin: 0; padding-left: 20px; color: #78350f; font-size: 13px; line-height: 1.8;">
+                <li><strong>LocalStorage 快取</strong>：儲存場地資料，5分鐘有效</li>
+                <li><strong>圖片快取</strong>：預載入商品圖片，加快顯示速度</li>
+                <li><strong>Service Worker</strong>：離線時也能查看已載入的內容</li>
+              </ul>
+            </div>
+            
+            <!-- 操作按鈕 -->
+            <div style="display: grid; gap: 10px;">
+              <button 
+                onclick="clearAllCache(); location.reload()"
+                style="
+                  width: 100%;
+                  padding: 12px;
+                  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                  color: #fff;
+                  border: none;
+                  border-radius: 10px;
+                  font-size: 15px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+                  transition: all .2s ease;
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(239, 68, 68, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)'"
+              >
+                🗑️ 清除所有快取
+              </button>
+              
+              ${navigator.serviceWorker.controller ? `
+                <button 
+                  onclick="navigator.serviceWorker.controller.postMessage({type: 'CLEAR_CACHE'}); setTimeout(() => location.reload(), 500)"
+                  style="
+                    width: 100%;
+                    padding: 12px;
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                    color: #fff;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 15px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+                    transition: all .2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)'"
+                >
+                  🔄 清除 Service Worker 快取
+                </button>
+              ` : ''}
+              
+              <button 
+                onclick="this.closest('[style*=fixed]').remove()"
+                style="
+                  width: 100%;
+                  padding: 12px;
+                  background: #fff;
+                  color: var(--muted);
+                  border: 1.5px solid var(--border);
+                  border-radius: 10px;
+                  font-size: 15px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: all .2s ease;
+                "
+                onmouseover="this.style.borderColor='var(--muted)'"
+                onmouseout="this.style.borderColor='var(--border)'"
+              >
+                關閉
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 點擊背景關閉
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+      
+      document.body.appendChild(modal);
+    }
+    
+    // 綁定快取管理按鈕
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'cacheManagerBtn' || e.target.closest('#cacheManagerBtn')) {
+        showCacheManager();
+      }
+    });
+    
     // ====== 頁面載入時初始化 ======
     window.addEventListener('DOMContentLoaded', async () => {
+      // 💾 首先從 LocalStorage 恢復快取（立即可用）
+      loadCacheFromStorage();
+      
       // ⚠️ 優先檢查授權（如果有外部 app.js 定義了 checkAuthorization）
       if (typeof checkAuthorization === 'function') {
         const authResult = await checkAuthorization();
@@ -2377,6 +2920,9 @@
               timestamp: Date.now()
             };
             
+            // 💾 同步到 LocalStorage
+            saveCacheToStorage();
+            
             document.body.removeChild(loadingMsg);
             
             // 顯示成功提示
@@ -2496,7 +3042,8 @@
         return;
       }
 
-      const itemsDetail = items.map(it => `${it.name} x${it.qty}`).join(' / ');
+      // 🔧 使用换行符分隔，在 Google Sheet 中自动换行显示
+      const itemsDetail = items.map(it => `${it.name} x${it.qty}`).join('\n');
 
       // 生成格式化訂單摘要（用於顯示和儲存）
       const nameParts = form.name.value.trim().split(/[\s\#]/);

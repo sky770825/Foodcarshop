@@ -38,6 +38,7 @@ function onOpen() {
     .addItem('➖ 減少庫存...', 'reduceStockPrompt')
     .addSeparator()
     .addItem('🆕 新增價格與優惠欄位', 'addNewColumnsToAllVenues')
+    .addItem('🎁 新增組合優惠欄位 (O栏)', 'addComboGroupColumn')
     .addToUi();
   
   ui.createMenu('🏪 場地管理')
@@ -100,10 +101,12 @@ function parsePriceRules(ruleString) {
         
         // 如果標籤不是純數字，就是自訂標籤
         if (!/^\d+$/.test(label) && price > 0) {
+          // 🔧 自訂標籤的 qty 統一為 1（代表1個銷售單位，例如1袋、1盒）
+          // 標籤中的"6入"、"12入"只是說明包裝內容，不是購買數量
           rules.push({ 
-            qty: index + 1,  // 使用索引作為qty（供計算用）
+            qty: 1,          // 🔧 統一為 1（1個銷售單位）
             price: price,
-            label: label,    // 🆕 自訂標籤
+            label: label,    // 🆕 自訂標籤（例如：6入袋裝、12入盒裝）
             isCustomLabel: true
           });
           return;
@@ -693,9 +696,9 @@ function getInventory(venue) {
     const mainItems = [];
     
     // 從第2行開始（跳過標題）
-    // 欄位：A=商品名稱, B=類型, C=當前庫存, D=初始庫存, E=狀態, F=分類, G=圖片網址, H=原價, I=優惠價, J=優惠標籤, K=排序, L=推薦標籤, M=商品描述, N=每日限量
+    // 欄位：A=商品名稱, B=類型, C=當前庫存, D=初始庫存, E=狀態, F=分類, G=圖片網址, H=原價, I=優惠價, J=優惠標籤, K=排序, L=推薦標籤, M=價格描述說明, N=每日限量, O=組合優惠組ID
     for (let i = 1; i < data.length; i++) {
-      const [name, type, currentStock, initialStock, status, category, imageUrl, originalPrice, salePrice, saleLabel, sortOrder, recommendTag, description, dailyLimit] = data[i];
+      const [name, type, currentStock, initialStock, status, category, imageUrl, originalPrice, salePrice, saleLabel, sortOrder, recommendTag, priceDescription, dailyLimit, comboGroupId] = data[i];
       
       if (!name) continue;
       
@@ -722,8 +725,9 @@ function getInventory(venue) {
         hasDiscount: hasDiscount,              // 🆕 是否有優惠
         sortOrder: sortOrder || 999,           // 🆕 排序順序（預設最後）
         recommendTag: recommendTag || '',      // 🆕 推薦標籤
-        description: description || '',        // 🆕 商品描述
-        dailyLimit: dailyLimit || 0            // 🆕 每日限量
+        priceDescription: priceDescription || '',  // 🆕 價格描述說明（M 栏）
+        dailyLimit: dailyLimit || 0,           // 🆕 每日限量
+        comboGroupId: comboGroupId || ''       // 🆕 組合優惠組ID（O 栏）
       };
       
       // 配菜分類
@@ -757,8 +761,9 @@ function getInventory(venue) {
           hasDiscount: hasDiscount,
           sortOrder: sortOrder || 999,           // 🆕 排序順序
           recommendTag: recommendTag || '',      // 🆕 推薦標籤
-          description: description || '',        // 🆕 商品描述
-          dailyLimit: dailyLimit || 0            // 🆕 每日限量
+          priceDescription: priceDescription || '',  // 🆕 價格描述說明（M 栏）
+          dailyLimit: dailyLimit || 0,           // 🆕 每日限量
+          comboGroupId: comboGroupId || ''       // 🆕 組合優惠組ID（O 栏）
         });
       }
     }
@@ -776,8 +781,9 @@ function getInventory(venue) {
         hasDiscount: item.hasDiscount,           // 是否有優惠
         sortOrder: item.sortOrder,               // 🆕 排序順序
         recommendTag: item.recommendTag,         // 🆕 推薦標籤
-        description: item.description,           // 🆕 商品描述
+        priceDescription: item.priceDescription, // 🆕 價格描述說明（M 栏）
         dailyLimit: item.dailyLimit,             // 🆕 每日限量
+        comboGroupId: item.comboGroupId,         // 🆕 組合優惠組ID（O 栏）
         stock: item.stock,
         available: item.available
       }))
@@ -935,6 +941,91 @@ function saveOrder(params, venue) {
     venueName                          // P: 場地名稱
   ]);
   
+  // 🎨 美化訂單格式（設置顏色和樣式）
+  const lastRow = sheet.getLastRow();
+  
+  // B 栏：訂單編號（粗體、深藍色）
+  sheet.getRange(lastRow, 2)
+    .setFontWeight('bold')
+    .setFontColor('#1e40af')
+    .setFontSize(11);
+  
+  // C 栏：姓名（粗體）
+  sheet.getRange(lastRow, 3)
+    .setFontWeight('bold')
+    .setFontSize(10);
+  
+  // G 栏：商品詳情（啟用文字換行、淡藍色背景）
+  sheet.getRange(lastRow, 7)
+    .setWrap(true)
+    .setVerticalAlignment('top')
+    .setFontSize(10)
+    .setBackground('#eff6ff');
+  
+  // H 栏：總額（粗體、橙色、大字、黃色背景）
+  sheet.getRange(lastRow, 8)
+    .setFontWeight('bold')
+    .setFontColor('#d97706')
+    .setFontSize(13)
+    .setBackground('#fffbeb')
+    .setHorizontalAlignment('center');
+  
+  // M 栏：訂單狀況（粗體、黃色背景）
+  sheet.getRange(lastRow, 13)
+    .setFontWeight('bold')
+    .setBackground('#fef3c7')
+    .setFontColor('#92400e')
+    .setHorizontalAlignment('center');
+  
+  // O 栏：訂單摘要（使用富文本格式，突出金額）
+  try {
+    const summaryText = params.orderSummary || '';
+    const summaryCell = sheet.getRange(lastRow, 15);
+    
+    // 🎨 創建富文本，將金額部分標記為橙色粗體
+    const richTextBuilder = SpreadsheetApp.newRichTextValue().setText(summaryText);
+    
+    // 查找所有金額（例如：1580元、$1580、金額：1580）
+    const amountMatches = [...summaryText.matchAll(/(\d+)元|金額[：:]\s*(\d+)/g)];
+    
+    amountMatches.forEach(match => {
+      const startIndex = match.index;
+      const matchText = match[0];
+      const numberMatch = matchText.match(/\d+/);
+      
+      if (numberMatch) {
+        const numberStart = startIndex + matchText.indexOf(numberMatch[0]);
+        const numberEnd = numberStart + numberMatch[0].length;
+        
+        // 設置金額數字為橙色粗體
+        richTextBuilder.setTextStyle(
+          numberStart,
+          numberEnd,
+          SpreadsheetApp.newTextStyle()
+            .setFontSize(11)
+            .setForegroundColor('#d97706')
+            .setBold(true)
+            .build()
+        );
+      }
+    });
+    
+    summaryCell
+      .setRichTextValue(richTextBuilder.build())
+      .setWrap(true)
+      .setVerticalAlignment('top')
+      .setBackground('#f9fafb');
+      
+  } catch (err) {
+    // 如果富文本設置失敗，使用普通格式
+    Logger.log('⚠️ 富文本設置失敗，使用普通格式:', err);
+    sheet.getRange(lastRow, 15)
+      .setWrap(true)
+      .setVerticalAlignment('top')
+      .setBackground('#f9fafb')
+      .setFontSize(9);
+  }
+  
   Logger.log(`✅ 訂單已儲存：${orderNo} → ${sheetName}`);
   
   return orderNo;
@@ -1043,6 +1134,48 @@ function updateExistingOrder(orderNo, params, venue) {
         ];
         
         sheet.getRange(row, 1, 1, updatedRow.length).setValues([updatedRow]);
+        
+        // 🎨 美化訂單格式（與新訂單相同）
+        // B 栏：訂單編號
+        sheet.getRange(row, 2).setFontWeight('bold').setFontColor('#1e40af').setFontSize(11);
+        
+        // C 栏：姓名
+        sheet.getRange(row, 3).setFontWeight('bold').setFontSize(10);
+        
+        // G 栏：商品詳情
+        sheet.getRange(row, 7).setWrap(true).setVerticalAlignment('top').setFontSize(10).setBackground('#eff6ff');
+        
+        // H 栏：總額
+        sheet.getRange(row, 8).setFontWeight('bold').setFontColor('#d97706').setFontSize(13).setBackground('#fffbeb').setHorizontalAlignment('center');
+        
+        // M 栏：訂單狀況（已修改 - 橙色背景）
+        sheet.getRange(row, 13).setFontWeight('bold').setBackground('#fed7aa').setFontColor('#92400e').setHorizontalAlignment('center');
+        
+        // O 栏：訂單摘要（富文本）
+        try {
+          const summaryText = params.orderSummary || '';
+          const summaryCell = sheet.getRange(row, 15);
+          const richTextBuilder = SpreadsheetApp.newRichTextValue().setText(summaryText);
+          const amountMatches = [...summaryText.matchAll(/(\d+)元|金額[：:]\s*(\d+)/g)];
+          
+          amountMatches.forEach(match => {
+            const startIndex = match.index;
+            const matchText = match[0];
+            const numberMatch = matchText.match(/\d+/);
+            if (numberMatch) {
+              const numberStart = startIndex + matchText.indexOf(numberMatch[0]);
+              const numberEnd = numberStart + numberMatch[0].length;
+              richTextBuilder.setTextStyle(numberStart, numberEnd,
+                SpreadsheetApp.newTextStyle().setFontSize(11).setForegroundColor('#d97706').setBold(true).build()
+              );
+            }
+          });
+          
+          summaryCell.setRichTextValue(richTextBuilder.build()).setWrap(true).setVerticalAlignment('top').setBackground('#f9fafb');
+        } catch (err) {
+          sheet.getRange(row, 15).setWrap(true).setVerticalAlignment('top').setBackground('#f9fafb').setFontSize(9);
+        }
+        
         Logger.log('✅ 訂單已更新：' + orderNo);
         
         return { ok: true, msg: '訂單已更新' };
@@ -1167,7 +1300,8 @@ function jsonResponse(obj) {
 
 function parseItems(itemsDetail) {
   const items = [];
-  const parts = itemsDetail.split(' / ');
+  // 🔧 支援換行符或斜線分隔（兼容新舊版本）
+  const parts = itemsDetail.split(/[\n\/]/).map(p => p.trim()).filter(p => p);
   
   for (const part of parts) {
     const match = part.match(/(.+?)\s*x(\d+)/);
@@ -1303,6 +1437,109 @@ function createStatisticsSheet() {
 ✅ 一鍵重置所有場地庫存
 ✅ 自動場地代碼識別
 ✅ 訂單編號格式：MMdd-場地代碼-序號
+✅ 組合優惠支援（O栏组合组ID）
 
 */
+
+// ========== 🎁 自動新增組合優惠欄位 ==========
+
+/**
+ * 🎁 一鍵為所有場地庫存工作表新增 O 欄（組合優惠組ID）
+ */
+function addComboGroupColumn() {
+  const ui = SpreadsheetApp.getUi();
+  
+  // 確認對話框
+  const response = ui.alert(
+    '🎁 新增組合優惠欄位',
+    '將為所有場地的庫存工作表新增 O 欄（組合優惠組ID）\n\n' +
+    '這個欄位用於設置可互相搭配的商品組合，例如：\n' +
+    '• 六蒜包和丹麥手撕包可以合併計算優惠\n\n' +
+    '是否繼續？',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    ui.alert('已取消操作');
+    return;
+  }
+  
+  try {
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const venueSheet = ss.getSheetByName(VENUE_SHEET);
+    
+    if (!venueSheet) {
+      ui.alert('❌ 找不到場地清單工作表');
+      return;
+    }
+    
+    const venueData = venueSheet.getDataRange().getValues();
+    let successCount = 0;
+    let skipCount = 0;
+    const results = [];
+    
+    // 從第2行開始（跳過表頭）
+    for (let i = 1; i < venueData.length; i++) {
+      const venueCode = venueData[i][0];
+      const venueName = venueData[i][1];
+      
+      if (!venueCode || !venueName) continue;
+      
+      const sheetName = `${venueName}_庫存管理`;
+      const sheet = ss.getSheetByName(sheetName);
+      
+      if (!sheet) {
+        results.push(`⏭️ 跳過：${sheetName}（工作表不存在）`);
+        skipCount++;
+        continue;
+      }
+      
+      // 檢查 O 欄是否已有內容
+      const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      
+      if (headerRow.length >= 15 && headerRow[14]) {
+        // O 欄（第15欄）已有表頭
+        results.push(`⏭️ 跳過：${sheetName}（O 欄已存在：${headerRow[14]}）`);
+        skipCount++;
+        continue;
+      }
+      
+      // 設置 O 欄表頭（第15欄，索引14）
+      sheet.getRange(1, 15)
+        .setValue('組合優惠組ID')
+        .setFontWeight('bold')
+        .setBackground('#fef3c7')
+        .setFontColor('#92400e')
+        .setHorizontalAlignment('center');
+      
+      // 調整欄寬
+      sheet.setColumnWidth(15, 120);
+      
+      results.push(`✅ 成功：${sheetName}`);
+      successCount++;
+    }
+    
+    // 顯示結果
+    const resultMessage = `
+🎁 組合優惠欄位新增完成！
+
+✅ 成功：${successCount} 個工作表
+⏭️ 跳過：${skipCount} 個工作表
+
+詳細結果：
+${results.join('\n')}
+
+下一步：
+1. 在 O 欄填寫組合組ID（例如：GROUP_BREAD）
+2. 相同組ID的商品可以合併計算優惠
+3. 重新部署 Google Apps Script
+4. 測試功能
+    `;
+    
+    ui.alert(resultMessage);
+    
+  } catch (err) {
+    ui.alert('❌ 錯誤：' + err.message);
+  }
+}
 
