@@ -1148,7 +1148,7 @@
     const AUTH_API = "https://script.google.com/macros/s/AKfycbyDsD6V7cP239XOFvQ3mRRPILxQsBagt5UIFTJszkfsSf_1SXiDAzIav-F2dXPRU22X/exec"; // 授權管理中心 API 網址
     
     // Google Apps Script URL（客戶的訂單系統）
-    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbyM-4vztyA6Dduul6ylZutjA86yIJT_BTqI1tmuv9d-bMwDEHzYFT0U0P3A1-5n3JNv/exec"; // ✅ 已部署（v2.4 組合優惠+訂單美化+完整功能）
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxYkEW3UhX6_1dCOVp-tyWBIhH0HqcY255x3J_ktWhglIgonKO2jac_MruE88HxJX_t/exec"; // ✅ 已部署（v2.5 新增最低購買數量功能）
 
     // ====== 授權檢查 ======
     async function checkAuthorization() {
@@ -1950,16 +1950,19 @@
         const recommendTag = item.recommendTag || '';
         const description = item.description || '';
         const dailyLimit = item.dailyLimit || 0;
+        const minQty = item.minQty || 0; // 🆕 最低購買數量
         
-        // 💰 生成價格顯示 HTML（簡化版，只顯示起始價）
+        // 💰 生成價格顯示 HTML（顯示單價）
         let priceHTML = '';
-        if (hasDiscount && priceRules.length > 0) {
-          // 有階梯價格：找最低價格顯示
-          const minPrice = Math.min(...priceRules.map(r => r.price));
-          priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${minPrice}起</div>`;
-        } else if (basePrice > 0) {
-          // 無優惠：只顯示單價
-          priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${basePrice}</div>`;
+        if (basePrice > 0) {
+          // 🔧 統一顯示單價，不論有無優惠都顯示基礎單價
+          if (hasDiscount && priceRules.length > 0) {
+            // 有優惠：顯示「單價起」（表示有更優惠的方案）
+            priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${basePrice}<span style="font-size:0.85em; font-weight:400; margin-left:2px;">起</span></div>`;
+          } else {
+            // 無優惠：只顯示單價（不加「起」字）
+            priceHTML = `<div style="font-size:clamp(14px,3vw,15px); font-weight:700; color:var(--primary);">$${basePrice}</div>`;
+          }
         } else {
           // 價格載入中
           priceHTML = `<div style="font-size:clamp(13px,2.8vw,14px); color:var(--muted);">價格載入中</div>`;
@@ -2025,6 +2028,19 @@
           ">⏰ 每日限量 ${dailyLimit} 份</div>
         ` : '';
         
+        // 🔢 最低購買數量提示 HTML（如果有）
+        const minQtyHTML = minQty > 0 ? `
+          <div style="
+            font-size:clamp(10px,2.2vw,11px);
+            color:#059669;
+            font-weight:600;
+            margin-top:clamp(2px,0.5vw,3px);
+            display:flex;
+            align-items:center;
+            gap:4px;
+          ">📦 至少購買 ${minQty} 個</div>
+        ` : '';
+        
         card.innerHTML = `
           ${saleLabelHTML}
           ${recommendTagHTML}
@@ -2044,6 +2060,7 @@
                 <div class="product-stock" style="font-size:clamp(10px,2.2vw,11px); color:var(--muted); white-space:nowrap;">載入中...</div>
               </div>
               ${dailyLimitHTML}
+              ${minQtyHTML}
             </div>
             <div class="product-price" style="margin-bottom:0;">${priceHTML}</div>
           </div>
@@ -2101,6 +2118,7 @@
               data-price-rules='${JSON.stringify(priceRules)}'
               data-name="${item.name}"
               data-combo-group="${item.comboGroupId || ''}"
+              data-min-qty="${minQty}"
               class="qty"
             />
             <button type="button" class="qty-btn" data-action="increase" data-target="${item.name}">+</button>
@@ -2252,7 +2270,33 @@
     // 監聽所有數量輸入變化（使用事件委託，避免重複綁定）
     document.addEventListener('input', (e) => {
       if (e.target.classList.contains('qty')) {
-        e.target.setAttribute('value', e.target.value);
+        const input = e.target;
+        let value = parseInt(input.value) || 0;
+        const minQty = parseInt(input.dataset.minQty) || 0;
+        
+        // 🔢 如果有最低數量限制，且輸入的數量在 1 到 minQty 之間，顯示警告
+        if (minQty > 0 && value > 0 && value < minQty) {
+          // 添加紅色邊框提示
+          input.style.borderColor = '#dc2626';
+          
+          // 在商品卡片上顯示提示
+          const tipEl = document.querySelector(`.tier-price-tip[data-item="${input.dataset.name}"]`);
+          if (tipEl) {
+            tipEl.textContent = `⚠️ 至少需購買 ${minQty} 個`;
+            tipEl.style.color = '#dc2626';
+          }
+        } else {
+          // 移除警告樣式
+          input.style.borderColor = '';
+          
+          // 清除提示（會在 recalc 中重新生成優惠提示）
+          const tipEl = document.querySelector(`.tier-price-tip[data-item="${input.dataset.name}"]`);
+          if (tipEl && value === 0) {
+            tipEl.textContent = '';
+          }
+        }
+        
+        input.setAttribute('value', input.value);
         debouncedRecalc(); // 使用防抖版本
       }
     });
@@ -2284,11 +2328,25 @@
       if (!input) return;
       
       let currentValue = parseInt(input.value) || 0;
+      const minQty = parseInt(input.dataset.minQty) || 0;
       
-      if (action === 'increase' && currentValue < 99) {
-        currentValue++;
-      } else if (action === 'decrease' && currentValue > 0) {
-        currentValue--;
+      if (action === 'increase') {
+        if (currentValue < 99) {
+          // 🔢 如果當前是 0 且有最低數量限制，直接跳到最低數量
+          if (currentValue === 0 && minQty > 0) {
+            currentValue = minQty;
+          } else {
+            currentValue++;
+          }
+        }
+      } else if (action === 'decrease') {
+        if (currentValue > 0) {
+          currentValue--;
+          // 🔢 如果減少後小於最低數量，直接歸零（不能停在中間）
+          if (minQty > 0 && currentValue > 0 && currentValue < minQty) {
+            currentValue = 0;
+          }
+        }
       }
       
       input.value = currentValue;
@@ -2848,6 +2906,18 @@
         loadingOverlay.classList.add('hidden');
         setTimeout(() => {
           loadingOverlay.style.display = 'none';
+          
+          // 🎯 載入完成後自動聚焦到場地選擇器
+          const venueSelect = document.getElementById('venueSelect');
+          if (venueSelect) {
+            // 延遲聚焦，確保動畫完成
+            setTimeout(() => {
+              venueSelect.focus();
+              // 可選：滾動到場地選擇器位置
+              venueSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              console.log('🎯 已自動聚焦到取餐場地選擇器');
+            }, 100);
+          }
         }, 300);
       }
       
@@ -3019,6 +3089,33 @@
       
       if (items.length === 0) {
         result.innerHTML = '<div class="message error">⚠️ 請至少選擇 1 項商品</div>';
+        return;
+      }
+      
+      // 🔢 檢查是否有違反最低購買數量的商品
+      const invalidItems = [];
+      document.querySelectorAll('.qty').forEach(q => {
+        const qty = parseInt(q.value) || 0;
+        const minQty = parseInt(q.dataset.minQty) || 0;
+        const itemName = q.dataset.name;
+        
+        if (qty > 0 && minQty > 0 && qty < minQty) {
+          invalidItems.push({ name: itemName, qty, minQty });
+        }
+      });
+      
+      if (invalidItems.length > 0) {
+        const errorMsg = invalidItems.map(item => 
+          `【${item.name}】至少需購買 ${item.minQty} 個（目前 ${item.qty} 個）`
+        ).join('<br/>');
+        
+        result.innerHTML = `
+          <div class="message error">
+            ⚠️ 以下商品未達最低購買數量：<br/>
+            ${errorMsg}
+          </div>
+        `;
+        result.scrollIntoView({behavior: 'smooth', block: 'center'});
         return;
       }
       
