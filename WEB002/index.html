@@ -1148,7 +1148,7 @@
     const AUTH_API = "https://script.google.com/macros/s/AKfycbyDsD6V7cP239XOFvQ3mRRPILxQsBagt5UIFTJszkfsSf_1SXiDAzIav-F2dXPRU22X/exec"; // 授權管理中心 API 網址
     
     // Google Apps Script URL（客戶的訂單系統）
-    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbyM-4vztyA6Dduul6ylZutjA86yIJT_BTqI1tmuv9d-bMwDEHzYFT0U0P3A1-5n3JNv/exec"; // ✅ 已部署（v2.4 组合优惠+订单美化+完整功能）
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbyM-4vztyA6Dduul6ylZutjA86yIJT_BTqI1tmuv9d-bMwDEHzYFT0U0P3A1-5n3JNv/exec"; // ✅ 已部署（v2.4 組合優惠+訂單美化+完整功能）
 
     // ====== 授權檢查 ======
     async function checkAuthorization() {
@@ -1966,7 +1966,7 @@
         }
         
         // 🏷️ 優惠標籤 HTML（如果有）
-        const saleLabelHTML = hasDiscount && saleLabel ? `
+        const saleLabelHTML = saleLabel ? `
           <div style="
             position:absolute; 
             top:6px; 
@@ -2304,7 +2304,7 @@
     const form = document.querySelector('#orderForm');
     const result = document.querySelector('#result');
 
-    // 定義實際的 recalc 函數（组合优惠版本）
+    // 定義實際的 recalc 函數（組合優惠版本）
     recalc = function() {
       let items = [];
       let total = 0;
@@ -2327,7 +2327,7 @@
         }
       });
       
-      // 🆕 第2步：按组ID分组（用于组合优惠计算）
+      // 🆕 第2步：按組ID分組（用於組合優惠計算）
       const comboGroups = {};
       selectedItems.forEach(item => {
         if (item.comboGroup) {
@@ -2350,15 +2350,15 @@
         let avgPrice = item.basePrice;
         
         if (item.comboGroup && comboGroups[item.comboGroup]) {
-          // 🎯 组合优惠：使用组总数量计算，再按比例分配
+          // 🎯 組合優惠：使用組總數量計算，再按比例分配
           const group = comboGroups[item.comboGroup];
           const groupTotalPrice = calculateTierPrice(group.totalQty, group.basePrice, group.priceRules);
           
-          // 按数量比例分配价格
+          // 按數量比例分配價格
           subtotal = Math.round(groupTotalPrice * (item.qty / group.totalQty));
           avgPrice = Math.round(subtotal / item.qty);
         } else {
-          // 🧮 一般计算：单独计算
+          // 🧮 一般計算：單獨計算
           subtotal = calculateTierPrice(item.qty, item.basePrice, item.priceRules);
           avgPrice = item.qty > 0 ? Math.round(subtotal / item.qty) : item.basePrice;
         }
@@ -2374,15 +2374,15 @@
           comboGroup: item.comboGroup
         });
         
-        // 🌟 更新优惠提示
+        // 🌟 更新優惠提示
         const tipEl = document.querySelector(`.tier-price-tip[data-item="${item.name}"]`);
         if (tipEl) {
           if (item.comboGroup && comboGroups[item.comboGroup]) {
-            // 显示组合优惠提示
+            // 顯示組合優惠提示
             const group = comboGroups[item.comboGroup];
             const tip = getTierPriceTip(group.totalQty, group.basePrice, group.priceRules);
             if (tip) {
-              tipEl.textContent = `🎁 组合优惠：${tip}`;
+              tipEl.textContent = `🎁 組合優惠：${tip}`;
               tipEl.style.color = '#059669';
             } else {
               tipEl.textContent = '';
@@ -2414,7 +2414,7 @@
               ${item.priceRules.length > 0 ? `(平均@$${item.avgPrice})` : `@$${item.basePrice}`}
             </span>
             <span style="float:right;color:var(--primary)">$${item.subtotal}</span>
-            ${item.comboGroup ? `<br/><small style="color:#059669;">🎁 组合优惠</small>` : ''}
+            ${item.comboGroup ? `<br/><small style="color:#059669;">🎁 組合優惠</small>` : ''}
           </div>
         `).join('');
       }

@@ -47,6 +47,17 @@ function onOpen() {
     .addItem('⚙️ 啟用自動同步', 'enableAutoSync')
     .addItem('🔕 停用自動同步', 'disableAutoSync')
     .addToUi();
+  
+  ui.createMenu('📋 訂單管理')
+    .addItem('🕐 按取餐時間排序 (早→晚)', 'sortOrdersByPickupTimeAsc')
+    .addItem('🕐 按取餐時間排序 (晚→早)', 'sortOrdersByPickupTimeDesc')
+    .addSeparator()
+    .addItem('📅 按訂單時間排序 (新→舊)', 'sortOrdersByCreateTimeDesc')
+    .addItem('📅 按訂單時間排序 (舊→新)', 'sortOrdersByCreateTimeAsc')
+    .addSeparator()
+    .addItem('💰 按金額排序 (高→低)', 'sortOrdersByAmountDesc')
+    .addItem('💰 按金額排序 (低→高)', 'sortOrdersByAmountAsc')
+    .addToUi();
 }
 
 function removeDailyStatistics() {
@@ -1440,6 +1451,205 @@ function createStatisticsSheet() {
 ✅ 組合優惠支援（O栏组合组ID）
 
 */
+
+// ========== 📋 訂單排序功能 ==========
+
+/**
+ * 🕐 按取餐時間排序（早→晚）
+ */
+function sortOrdersByPickupTimeAsc() {
+  sortOrders('pickup', 'asc');
+}
+
+/**
+ * 🕐 按取餐時間排序（晚→早）
+ */
+function sortOrdersByPickupTimeDesc() {
+  sortOrders('pickup', 'desc');
+}
+
+/**
+ * 📅 按訂單時間排序（新→舊）
+ */
+function sortOrdersByCreateTimeDesc() {
+  sortOrders('create', 'desc');
+}
+
+/**
+ * 📅 按訂單時間排序（舊→新）
+ */
+function sortOrdersByCreateTimeAsc() {
+  sortOrders('create', 'asc');
+}
+
+/**
+ * 💰 按金額排序（高→低）
+ */
+function sortOrdersByAmountDesc() {
+  sortOrders('amount', 'desc');
+}
+
+/**
+ * 💰 按金額排序（低→高）
+ */
+function sortOrdersByAmountAsc() {
+  sortOrders('amount', 'asc');
+}
+
+/**
+ * 📋 訂單排序核心函數
+ * @param {string} sortBy - 排序欄位：'pickup'（取餐時間）, 'create'（訂單時間）, 'amount'（金額）
+ * @param {string} order - 排序方向：'asc'（升序）, 'desc'（降序）
+ */
+function sortOrders(sortBy, order) {
+  const ui = SpreadsheetApp.getUi();
+  
+  // 🆕 取得所有場地列表
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const venueSheet = ss.getSheetByName(VENUE_SHEET);
+  
+  if (!venueSheet) {
+    ui.alert('❌ 找不到場地清單');
+    return;
+  }
+  
+  const venueData = venueSheet.getDataRange().getValues();
+  const venueOptions = ['📍 所有場地'];
+  const venueCodes = ['all'];
+  
+  // 建立場地選項列表
+  for (let i = 1; i < venueData.length; i++) {
+    const code = venueData[i][0];
+    const name = venueData[i][1];
+    const status = venueData[i][2] || '營業中';
+    
+    if (code && name) {
+      venueOptions.push(`📍 ${name} (${code})`);
+      venueCodes.push(code);
+    }
+  }
+  
+  // 🎨 使用下拉選單讓使用者選擇
+  const sortTypeText = {
+    'pickup': '🕐 取餐時間',
+    'create': '📅 訂單時間',
+    'amount': '💰 金額'
+  };
+  const orderText = order === 'asc' ? '(升序)' : '(降序)';
+  
+  const message = `請選擇要排序的場地：\n\n排序方式：${sortTypeText[sortBy]} ${orderText}\n\n${venueOptions.map((v, i) => `${i + 1}. ${v}`).join('\n')}`;
+  
+  const response = ui.prompt(
+    '📋 選擇要排序的場地',
+    message + '\n\n請輸入編號（1-' + venueOptions.length + '）：',
+    ui.ButtonSet.OK_CANCEL
+  );
+  
+  if (response.getSelectedButton() !== ui.Button.OK) {
+    return;
+  }
+  
+  const selectedIndex = parseInt(response.getResponseText().trim()) - 1;
+  
+  if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= venueOptions.length) {
+    ui.alert('❌ 請輸入有效的編號（1-' + venueOptions.length + '）');
+    return;
+  }
+  
+  const venueInput = venueCodes[selectedIndex];
+  
+  try {
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    let sortedCount = 0;
+    
+    if (venueInput === 'all') {
+      // 排序所有場地
+      const venueSheet = ss.getSheetByName(VENUE_SHEET);
+      if (venueSheet) {
+        const venueData = venueSheet.getDataRange().getValues();
+        for (let i = 1; i < venueData.length; i++) {
+          const code = venueData[i][0];
+          const name = venueData[i][1];
+          if (code && name) {
+            const sheetName = `${name}_訂單記錄`;
+            if (sortOrderSheet(ss, sheetName, sortBy, order)) {
+              sortedCount++;
+            }
+          }
+        }
+      }
+    } else {
+      // 排序單一場地
+      const sheetName = getVenueSheetName(venueInput, 'order');
+      if (sheetName && sortOrderSheet(ss, sheetName, sortBy, order)) {
+        sortedCount = 1;
+      }
+    }
+    
+    const sortTypeText = {
+      'pickup': '取餐時間',
+      'create': '訂單時間',
+      'amount': '金額'
+    };
+    
+    const orderText = order === 'asc' ? '升序' : '降序';
+    
+    ui.alert(`✅ 排序完成！\n\n已排序 ${sortedCount} 個工作表\n排序方式：${sortTypeText[sortBy]} (${orderText})`);
+    
+  } catch (err) {
+    ui.alert('❌ 排序失敗：' + err.message);
+  }
+}
+
+/**
+ * 📋 排序單一訂單工作表
+ */
+function sortOrderSheet(ss, sheetName, sortBy, order) {
+  const sheet = ss.getSheetByName(sheetName);
+  
+  if (!sheet) {
+    return false;
+  }
+  
+  const lastRow = sheet.getLastRow();
+  
+  if (lastRow <= 1) {
+    return false; // 沒有資料
+  }
+  
+  // 🔧 檢測凍結列數（避免排序到表頭）
+  const frozenRows = sheet.getFrozenRows();
+  const startRow = Math.max(frozenRows + 1, 2); // 從凍結列之後開始，至少從第2列
+  
+  // 計算實際資料行數
+  const numRows = lastRow - startRow + 1;
+  
+  if (numRows <= 0) {
+    return false; // 沒有可排序的資料
+  }
+  
+  // 取得資料範圍（排除凍結列和標題行）
+  const dataRange = sheet.getRange(startRow, 1, numRows, sheet.getLastColumn());
+  
+  // 確定排序欄位
+  let sortColumn = 1; // 預設A欄（訂單時間）
+  
+  if (sortBy === 'pickup') {
+    sortColumn = 6; // F 欄（取餐時間）
+  } else if (sortBy === 'create') {
+    sortColumn = 1; // A 欄（訂單時間）
+  } else if (sortBy === 'amount') {
+    sortColumn = 8; // H 欄（總額）
+  }
+  
+  // 執行排序
+  const ascending = (order === 'asc');
+  dataRange.sort({column: sortColumn, ascending: ascending});
+  
+  Logger.log(`✅ 排序完成：${sheetName} (凍結列: ${frozenRows}, 起始列: ${startRow})`);
+  
+  return true;
+}
 
 // ========== 🎁 自動新增組合優惠欄位 ==========
 
