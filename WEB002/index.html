@@ -1951,6 +1951,11 @@
         const description = item.description || '';
         const dailyLimit = item.dailyLimit || 0;
         
+        // 🎨 優惠標籤顏色（從 Google Sheet 讀取）
+        let saleLabelText = saleLabel;
+        let saleLabelBgColor = item.saleLabelBgColor || '#dc2626'; // 背景色（預設紅色）
+        let saleLabelTextColor = item.saleLabelTextColor || '#ffffff'; // 文字色（預設白色）
+        
         // 💰 生成價格顯示 HTML（簡化版，只顯示起始價）
         let priceHTML = '';
         if (hasDiscount && priceRules.length > 0) {
@@ -1966,20 +1971,20 @@
         }
         
         // 🏷️ 優惠標籤 HTML（如果有）
-        const saleLabelHTML = saleLabel ? `
+        const saleLabelHTML = saleLabelText ? `
           <div style="
             position:absolute; 
             top:6px; 
             left:6px; 
-            background:linear-gradient(135deg, #dc2626 0%, #ef4444 100%); 
-            color:#fff; 
+            background:${saleLabelBgColor}; 
+            color:${saleLabelTextColor}; 
             padding:clamp(3px,0.8vw,4px) clamp(6px,1.5vw,8px); 
             border-radius:clamp(4px,1vw,6px); 
             font-size:clamp(10px,2.2vw,11px); 
             font-weight:700; 
             z-index:5;
-            box-shadow:0 2px 6px rgba(220,38,38,0.3);
-          ">🏷️ ${saleLabel}</div>
+            box-shadow:0 2px 8px rgba(0,0,0,0.2);
+          ">🏷️ ${saleLabelText}</div>
         ` : '';
         
         // 🌟 推薦標籤 HTML（如果有）
